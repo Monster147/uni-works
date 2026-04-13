@@ -1,0 +1,179 @@
+P16 assembler v1.5 (Feb  9 2024)	lab03_LEDon_and_off_apenas_com_O7_on.lst	Fri Apr 26 12:41:13 2024
+
+Sections
+Index   Name            Address   Size
+0       startup         0000      000E 14
+1       .text           000E      006E 110
+2       .data           007C      0008 8
+3       .stack          0084      0040 64
+
+Symbols
+Name                    Type      Value       Section
+if                      LABEL     0040 64     .text
+INPORT_ADDRESS          ABSOLUTE  FF80 65408  startup
+inport_read             LABEL     005A 90     .text
+LEDoff                  LABEL     0050 80     .text
+LEDon                   LABEL     0048 72     .text
+line#24                 LABEL     0008 8      startup
+loop                    LABEL     0018 24     .text
+main                    LABEL     000E 14     .text
+main_addr               LABEL     000C 12     startup
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  startup
+outport_write           LABEL     0062 98     .text
+ritmos                  LABEL     007C 124    .data
+ritmos_addr             LABEL     0058 88     .text
+sleep                   LABEL     006A 106    .text
+sleep_end               LABEL     007A 122    .text
+sleep_inner_loop        LABEL     0072 114    .text
+sleep_outer_loop        LABEL     006E 110    .text
+STACK_SIZE              ABSOLUTE  0040 64     startup
+stack_top               LABEL     00C4 196    .stack
+stack_top_addr          LABEL     000A 10     startup
+
+Code listing
+   1           	; Ficheiro:  lab03.S
+   2           	; Descricao: Programa para a realização da 3a atividade laboratorial de
+   3           	;            Arquitetura de Computadores.
+   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
+   5           	; Data:      18-04-2024
+   6           	
+   7           	; Definicao dos valores dos simbolos utilizados no programa
+   8           	;
+   9          		.equ	STACK_SIZE, 64                ; Dimensao do stack
+  10           	
+  11           	; *** Início de zona para completar ***
+  12          		.equ	INPORT_ADDRESS, 0xFF80        ; ??
+  13          		.equ	OUTPORT_ADDRESS, 0xFFC0       ; ??
+  14           	; *** Final de zona para completar  ***
+  15           	
+  16           	; Seccao:    startup
+  17           	; Descricao: Guarda o código de arranque do sistema
+  18           	;
+  19           		.section startup
+  20 0000 4D 0C		ldr	sp, stack_top_addr
+  21 0002 80 B7	    mov r0, pc
+  22 0004 0E A2	    add lr, r0, #4
+  23 0006 2F 0C		ldr	pc, main_addr
+  24 0008 FF 5B	    b   .
+  25           	
+  26           	stack_top_addr:
+  27 000A C4 00		.word	stack_top
+  28           	main_addr:
+  29 000C 0E 00		.word	main
+  30           	
+  31           	; Seccao:    text
+  32           	; Descricao: Guarda o código do programa
+  33           	;
+  34           		.text
+  35           	
+  36           	; Rotina:    main
+  37           	; Descricao: *** Para completar ***
+  38           	; Entradas:  *** Para completar ***
+  39           	; Saidas:    *** Para completar ***
+  40           	; Efeitos:   *** Para completar ***
+  41           	main:
+  42 000E 0E 24		push	lr
+  43 0010 F0 6F		mov	r0, #0xFF
+  44 0012 27 5C		bl	outport_write
+  45 0014 00 60		mov	r0, #0x00
+  46 0016 25 5C		bl	outport_write
+  47           	loop:
+  48 0018 82 60		mov r2, #8
+  49 001A 1F 5C		bl inport_read
+  50 001C 13 C1		and r3, r1, r2
+  51 001E 30 B9		cmp r3, r2
+  52 0020 0F 40		beq if
+  53 0022 16 5C		bl LEDoff
+  54 0024 1A 5C		bl inport_read
+  55 0026 72 60		mov r2, #7
+  56 0028 73 0D		ldr r3, ritmos_addr
+  57 002A 20 C0		and r0, r2, r0
+  58 002C 30 18		ldrb r0, [r3, r0]
+  59 002E 1D 5C		bl sleep
+  60 0030 0B 5C		bl LEDon
+  61 0032 13 5C		bl inport_read
+  62 0034 72 60		mov r2, #7
+  63 0036 03 0D		ldr r3, ritmos_addr
+  64 0038 20 C0		and r0, r2, r0
+  65 003A 30 18		ldrb r0, [r3, r0]
+  66 003C 16 5C		bl sleep
+  67 003E EC 5B		b loop
+  68           	if:
+  69 0040 00 60		mov r0, #0x00
+  70 0042 0F 5C		bl 	outport_write
+  71 0044 E9 5B		b loop
+  72 0046 0F 04		pop	pc
+  73           		
+  74           	LEDon:
+  75 0048 0E 24		push lr
+  76 004A 10 68			mov r0, #0x81
+  77 004C 0A 5C			bl 	outport_write
+  78 004E 0F 04		pop pc
+  79           	
+  80           	LEDoff:
+  81 0050 0E 24		push lr
+  82 0052 00 68			mov r0, #0x80
+  83 0054 06 5C			bl 	outport_write
+  84 0056 0F 04		pop pc
+  85           	
+  86           	ritmos_addr:
+  87 0058 7C 00		.word ritmos
+  88           		
+  89           	; Rotina:    inport_read
+  90           	; Descricao: *** Para completar ***
+  91           	; Entradas:  -
+  92           	; Saidas:    r0 - *** Para completar ***
+  93           	; Efeitos:   r1 - *** Para completar ***
+  94           	inport_read:
+  95 005A 01 68		mov	r1, #INPORT_ADDRESS & 0xFF
+  96 005C F1 7F		movt	r1, #(INPORT_ADDRESS >> 8) & 0xFF
+  97 005E 10 08		ldrb	r0, [r1, #0]
+  98 0060 0F B7		mov	pc, lr
+  99           	
+ 100           	; Rotina:    outport_write
+ 101           	; Descricao: *** Para completar ***
+ 102           	; Entradas:  r0 - *** Para completar ***
+ 103           	; Saidas:    -
+ 104           	; Efeitos:   r1 - *** Para completar ***
+ 105           	outport_write:
+ 106 0062 01 6C		mov	r1, #OUTPORT_ADDRESS & 0xFF
+ 107 0064 F1 7F		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+ 108 0066 10 28		strb	r0, [r1, #0]
+ 109 0068 0F B7		mov	pc, lr
+ 110           	
+ 111           	; Rotina:    sleep
+ 112           	; Descricao: *** Para completar ***
+ 113           	; Entradas:  *** Para completar ***
+ 114           	; Saidas:    *** Para completar ***
+ 115           	; Efeitos:   *** Para completar ***
+ 116           	sleep:
+ 117 006A 00 C0		and	r0, r0, r0
+ 118 006C 06 40		beq	sleep_end
+ 119           	sleep_outer_loop:
+ 120 006E E1 63		mov	r1, #0x3E
+ 121 0070 31 70		movt	r1, #0x03
+ 122           	sleep_inner_loop:
+ 123 0072 91 A8		sub	r1, r1, #1
+ 124 0074 FE 47		bne	sleep_inner_loop
+ 125 0076 80 A8		sub	r0, r0, #1
+ 126 0078 FA 47		bne	sleep_outer_loop
+ 127           	sleep_end:
+ 128 007A 0F B7		mov	pc, lr
+ 129           	
+ 130           	; Seccao:    data
+ 131           	; Descricao: Guarda as variáveis globais
+ 132           	;
+ 133           		.data
+ 134           	ritmos:
+ 135          		.byte 5, 10, 15, 20, 25, 30, 35, 40
+ 135 007C 05 0A 0F 14 19 1E 23 28
+ 136           	
+ 137           	; Seccao:    stack
+ 138           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
+ 139           	;
+ 140           		.stack
+ 141 0084 00   		.space	STACK_SIZE
+ 141 .... ..
+ 141 00C3 00
+ 142           	stack_top:
+ 142           	

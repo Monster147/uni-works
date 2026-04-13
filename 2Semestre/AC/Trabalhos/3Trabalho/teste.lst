@@ -1,0 +1,93 @@
+P16 assembler v1.5 (Feb  9 2024)	teste.lst	Tue May 07 17:31:13 2024
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0066 102
+
+Symbols
+Name                    Type      Value       Section
+INPORT_ADDRESS          ABSOLUTE  FF80 65408  .text
+inport_read             LABEL     003A 58     .text
+LEDoff                  LABEL     0032 50     .text
+LEDon                   LABEL     002A 42     .text
+loop                    LABEL     000A 10     .text
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .text
+outport_write           LABEL     0042 66     .text
+ritmos                  LABEL     005E 94     .text
+ritmos_addr             LABEL     005C 92     .text
+sleep                   LABEL     004A 74     .text
+sleep_end               LABEL     005A 90     .text
+sleep_inner_loop        LABEL     0052 82     .text
+sleep_outer_loop        LABEL     004E 78     .text
+
+Code listing
+   1          		.equ	INPORT_ADDRESS, 0xFF80       
+   2          		.equ	OUTPORT_ADDRESS, 0xFFC0
+   3           		
+   4 0000 0E 24		push	lr
+   5 0002 F0 6F		mov	r0, #0xFF
+   6 0004 1E 5C		bl	outport_write
+   7 0006 00 60		mov	r0, #0x00
+   8 0008 1C 5C		bl	outport_write
+   9           	loop:
+  10 000A 13 5C		bl LEDoff
+  11 000C 16 5C		bl inport_read
+  12 000E 72 60		mov r2, #7
+  13 0010 53 0E		ldr r3, ritmos_addr
+  14 0012 20 C0		and r0, r2, r0
+  15 0014 30 18		ldrb r0, [r3, r0]
+  16 0016 19 5C		bl sleep
+  17 0018 08 5C		bl LEDon
+  18 001A 0F 5C		bl inport_read
+  19 001C 72 60		mov r2, #7
+  20 001E E3 0D		ldr r3, ritmos_addr
+  21 0020 20 C0		and r0, r2, r0
+  22 0022 30 18		ldrb r0, [r3, r0]
+  23 0024 12 5C		bl sleep
+  24 0026 F1 5B		b loop
+  25 0028 0F 04		pop	pc
+  26           		
+  27           	LEDon:
+  28 002A 0E 24		push lr
+  29 002C 10 68			mov r0, #0x81
+  30 002E 09 5C			bl 	outport_write
+  31 0030 0F 04		pop pc
+  32           	
+  33           	LEDoff:
+  34 0032 0E 24		push lr
+  35 0034 00 68			mov r0, #0x80
+  36 0036 05 5C			bl 	outport_write
+  37 0038 0F 04		pop pc
+  38           		
+  39           	inport_read:
+  40 003A 01 68		mov	r1, #INPORT_ADDRESS & 0xFF
+  41 003C F1 7F		movt	r1, #(INPORT_ADDRESS >> 8) & 0xFF
+  42 003E 10 08		ldrb	r0, [r1, #0]
+  43 0040 0F B7		mov	pc, lr
+  44           		
+  45           	outport_write:
+  46 0042 01 6C		mov	r1, #OUTPORT_ADDRESS & 0xFF
+  47 0044 F1 7F		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+  48 0046 10 28		strb	r0, [r1, #0]
+  49 0048 0F B7		mov	pc, lr
+  50           	
+  51           	sleep:
+  52 004A 00 C0		and	r0, r0, r0
+  53 004C 06 40		beq	sleep_end
+  54           	sleep_outer_loop:
+  55 004E E1 63		mov	r1, #0x3E
+  56 0050 31 70		movt	r1, #0x03
+  57           	sleep_inner_loop:
+  58 0052 91 A8		sub	r1, r1, #1
+  59 0054 FE 47		bne	sleep_inner_loop
+  60 0056 80 A8		sub	r0, r0, #1
+  61 0058 FA 47		bne	sleep_outer_loop
+  62           	sleep_end:
+  63 005A 0F B7		mov	pc, lr
+  64           	
+  65           	ritmos_addr:
+  66 005C 5E 00		.word ritmos
+  67           	
+  68           	ritmos:
+  69          		.byte 5, 10, 15, 20, 25, 30, 35, 40
+  69 005E 05 0A 0F 14 19 1E 23 28

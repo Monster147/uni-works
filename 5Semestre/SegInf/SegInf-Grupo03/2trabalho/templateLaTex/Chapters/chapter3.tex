@@ -1,0 +1,127 @@
+\chapter{Exercício 3}
+\label{cha:exercise_3}
+
+\section{Integração OAuth2 e OpenID Connect do Calendly}
+
+O Calendly permite autenticação e acesso a calendários do utilizador através dos serviços OAuth2 e
+OpenID Connect da Microsoft e da Google. Para analisar este processo, foram inspecionados os pedidos
+HTTP efetuados pelo browser durante o fluxo de autorização, recorrendo ao separador \textit{Network} das
+Developer Tools e ativando a opção \textit{Preserve log}.
+
+\section{Autenticação com Microsoft}
+
+\subsection*{Primeiro pedido ao authorization endpoint}
+
+O primeiro pedido feito pelo browser ao servidor de autorização foi identificado observando, nos logs,
+o primeiro redirecionamento que sai do domínio Calendly e entra num domínio Microsoft. Este pedido
+aparece tipicamente com método GET e contém os parâmetros do Authorization Code Flow, tais como
+\texttt{client\_id}, \texttt{redirect\_uri}, \texttt{scope}, \texttt{response\_type=code} e \texttt{state}.  
+
+A partir deste pedido foi obtida a seguinte informação:
+
+\begin{itemize}
+  \item \textbf{URI do authorization endpoint}:  
+  Observada diretamente no pedido GET inicial:  
+  \url{https://login.microsoftonline.com/common/oauth2/v2.0/authorize}
+
+  \item \textbf{client\_id do Calendly}:  
+  Lido no parâmetro \texttt{client\_id} presente na query string do pedido:  
+  \texttt{751ff9b5-edde-4dc1-8093-adf647495745}
+
+  \item \textbf{Scopes solicitados}:  
+  Identificados no parâmetro \texttt{scope} do mesmo pedido. O browser apresenta este parâmetro
+  com os valores codificados em URL; após decodificação, obtiveram-se:
+  \texttt{openid email profile offline\_access \\
+  https://graph.microsoft.com/User.Read \\
+  https://graph.microsoft.com/Calendars.ReadWrite \\
+  https://graph.microsoft.com/Calendars.ReadWrite.Shared}
+  
+  \item \textbf{Parâmetro state}:  
+  O parâmetro \texttt{state} surge no mesmo pedido GET e serve para proteção contra CSRF. O valor observado foi:  
+  \texttt{908b7026e06ea282e0b467c38b369913844113f56e08640b}
+\end{itemize}
+
+\subsection*{Último pedido ao servidor de autorização}
+
+O último pedido ao servidor Microsoft corresponde ao redirecionamento final após o utilizador introduzir
+credenciais e autorizar o Calendly. Este pedido foi identificado como o último pedido cujo domínio ainda
+pertence ao servidor de autorização Microsoft antes do redirecionamento para o domínio do Calendly.
+Não contém o \texttt{code}; apenas confirma a última etapa de autenticação antes do envio para o
+\texttt{redirect\_uri}.
+
+\subsection*{Pedido para a callback do Calendly}
+
+O pedido feito pelo browser para o endpoint de callback surge imediatamente após o último pedido ao
+domínio Microsoft. Este pedido foi identificado como um GET para um domínio Calendly com a presença
+dos parâmetros \texttt{code} e \texttt{state}.  
+A partir desse pedido obteve-se:
+
+\begin{itemize}
+  \item \textbf{URI de callback}:  
+  Observada diretamente como o URL de destino do pedido:  
+  \url{https://calendly.com/users/auth/azure2_oauth2/callback}
+
+  \item \textbf{Parâmetro code}:  
+  Lido no parâmetro \texttt{code} presente apenas neste pedido de callback:  
+  \texttt{M.C555\_BAY.2.U.02d23d5a-9210-465e-1540-1671d973b716}
+\end{itemize}
+
+\section{Autenticação com Google}
+
+O processo foi repetido seguindo exatamente o mesmo método: inspecionar o primeiro pedido ao
+authorization endpoint, o último pedido ao servidor Google e o pedido para o callback do Calendly.
+
+\begin{itemize}
+  \item \textbf{URI do authorization endpoint}:  
+  Obtida diretamente do primeiro pedido GET para o domínio Google:  
+  \url{https://accounts.google.com/v3/signin/accountchooser}
+
+  \item \textbf{client\_id}:  
+  Lido no parâmetro \texttt{client\_id} da query:  
+  \texttt{797340822162.apps.googleusercontent.com}
+
+  \item \textbf{Scopes}:  
+  Nos pedidos iniciais, os scopes estão na query do authorization request e incluem:  
+  \texttt{email profile https://www.googleapis.com/auth/calendar}  
+  No pedido de callback, verificam-se scopes expandidos incluindo \texttt{openid},
+  \texttt{userinfo.profile} e \texttt{userinfo.email}, visíveis no payload refletido no redirecionamento.
+
+  \item \textbf{URI de callback}:  
+  Observada diretamente no pedido de redirecionamento final:  
+  \url{https://calendly.com/users/auth/google_oauth2/callback}
+
+  \item \textbf{Parâmetro state}:  
+  Identificado na query do primeiro pedido:  
+  \texttt{e1da99902960d889f323318cd5ea78495eadebb8921f6039}
+
+  \item \textbf{Parâmetro code}:  
+  Observado apenas no pedido para o callback:  
+  \texttt{4/0Ab32j92IlwBZmRj1oxRANdk6GSDYtazH-59Fuk0je7ePmv03H2LSbXUBy-WmfYutmESRsw}
+\end{itemize}
+
+\section{Comparação entre Microsoft e Google}
+
+\subsection*{Client\_id}
+
+Os valores não coincidem, pois cada provedor gere o seu próprio registo de aplicações e atribui um
+\texttt{client\_id} independente, mesmo tratando-se da mesma aplicação (Calendly).
+
+\subsection*{Scopes}
+
+Os scopes diferem porque cada provedor oferece APIs diferentes.  
+A Microsoft utiliza scopes do Microsoft Graph; a Google utiliza scopes das Google APIs.  
+Ambos incluem permissões de perfil e calendário, mas não são semanticamente equivalentes.
+
+\subsection*{URI de callback}
+
+O Calendly define uma \texttt{redirect\_uri} distinta para cada provedor, permitindo isolamento entre fluxos
+de autenticação e configurações próprias em cada integração.
+
+\section{Presença do access token e id token no browser}
+
+Não é possível encontrar o \textit{access token} ou o \textit{id token} nos pedidos registados pelo browser.
+
+O fluxo utilizado é o Authorization Code Flow. No browser só circulam o \texttt{code} e o \texttt{state}.  
+A troca do \texttt{code} por tokens é realizada pelo backend do Calendly através de um pedido direto ao
+token endpoint dos provedores.  
+Como consequência, os tokens nunca são expostos ao browser, aumentando a segurança do processo.

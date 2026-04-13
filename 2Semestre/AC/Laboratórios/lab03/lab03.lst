@@ -1,0 +1,134 @@
+P16 assembler v1.5 (Feb  9 2024)	lab03.lst	Fri Apr 26 11:18:35 2024
+
+Sections
+Index   Name            Address   Size
+0       startup         0000      000E 14
+1       .text           000E      0034 52
+2       .stack          0042      0040 64
+
+Symbols
+Name                    Type      Value       Section
+INPORT_ADDRESS          ABSOLUTE  FF80 65408  startup
+inport_read             LABEL     0020 32     .text
+line#24                 LABEL     0008 8      startup
+loop                    LABEL     0018 24     .text
+main                    LABEL     000E 14     .text
+main_addr               LABEL     000C 12     startup
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  startup
+outport_write           LABEL     0028 40     .text
+sleep                   LABEL     0030 48     .text
+sleep_end               LABEL     0040 64     .text
+sleep_inner_loop        LABEL     0038 56     .text
+sleep_outer_loop        LABEL     0034 52     .text
+STACK_SIZE              ABSOLUTE  0040 64     startup
+stack_top               LABEL     0082 130    .stack
+stack_top_addr          LABEL     000A 10     startup
+
+Code listing
+   1           	; Ficheiro:  lab03.S
+   2           	; Descricao: Programa para a realização da 3a atividade laboratorial de
+   3           	;            Arquitetura de Computadores.
+   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
+   5           	; Data:      18-04-2024
+   6           	
+   7           	; Definicao dos valores dos simbolos utilizados no programa
+   8           	;
+   9          		.equ	STACK_SIZE, 64                ; Dimensao do stack
+  10           	
+  11           	; *** Início de zona para completar ***
+  12          		.equ	INPORT_ADDRESS, 0xFF80        ; ??
+  13          		.equ	OUTPORT_ADDRESS, 0xFFC0       ; ??
+  14           	; *** Final de zona para completar  ***
+  15           	
+  16           	; Seccao:    startup
+  17           	; Descricao: Guarda o código de arranque do sistema
+  18           	;
+  19           		.section startup
+  20 0000 4D 0C		ldr	sp, stack_top_addr
+  21 0002 80 B7	    mov r0, pc
+  22 0004 0E A2	    add lr, r0, #4
+  23 0006 2F 0C		ldr	pc, main_addr
+  24 0008 FF 5B	    b   .
+  25           	
+  26           	stack_top_addr:
+  27 000A 82 00		.word	stack_top
+  28           	main_addr:
+  29 000C 0E 00		.word	main
+  30           	
+  31           	; Seccao:    text
+  32           	; Descricao: Guarda o código do programa
+  33           	;
+  34           		.text
+  35           	
+  36           	; Rotina:    main
+  37           	; Descricao: *** Para completar ***
+  38           	; Entradas:  *** Para completar ***
+  39           	; Saidas:    *** Para completar ***
+  40           	; Efeitos:   *** Para completar ***
+  41           	main:
+  42 000E 0E 24		push	lr
+  43 0010 F0 6F		mov	r0, #0xFF
+  44 0012 0A 5C		bl	outport_write
+  45 0014 00 60		mov	r0, #0x00
+  46 0016 08 5C		bl	outport_write
+  47           	loop:
+  48 0018 03 5C		bl	inport_read
+  49 001A 06 5C		bl	outport_write
+  50 001C FD 5B		b	loop
+  51 001E 0F 04		pop	pc
+  52           	
+  53           	; Rotina:    inport_read
+  54           	; Descricao: *** Para completar ***
+  55           	; Entradas:  -
+  56           	; Saidas:    r0 - *** Para completar ***
+  57           	; Efeitos:   r1 - *** Para completar ***
+  58           	inport_read:
+  59 0020 01 68		mov	r1, #INPORT_ADDRESS & 0xFF
+  60 0022 F1 7F		movt	r1, #(INPORT_ADDRESS >> 8) & 0xFF
+  61 0024 10 08		ldrb	r0, [r1, #0]
+  62 0026 0F B7		mov	pc, lr
+  63           	
+  64           	; Rotina:    outport_write
+  65           	; Descricao: *** Para completar ***
+  66           	; Entradas:  r0 - *** Para completar ***
+  67           	; Saidas:    -
+  68           	; Efeitos:   r1 - *** Para completar ***
+  69           	outport_write:
+  70 0028 01 6C		mov	r1, #OUTPORT_ADDRESS & 0xFF
+  71 002A F1 7F		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+  72 002C 10 28		strb	r0, [r1, #0]
+  73 002E 0F B7		mov	pc, lr
+  74           	
+  75           	; Rotina:    sleep
+  76           	; Descricao: *** Para completar ***
+  77           	; Entradas:  *** Para completar ***
+  78           	; Saidas:    *** Para completar ***
+  79           	; Efeitos:   *** Para completar ***
+  80           	sleep:
+  81 0030 00 C0		and	r0, r0, r0
+  82 0032 06 40		beq	sleep_end
+  83           	sleep_outer_loop:
+  84 0034 E1 63		mov	r1, #0x3E
+  85 0036 31 70		movt	r1, #0x03
+  86           	sleep_inner_loop:
+  87 0038 91 A8		sub	r1, r1, #1
+  88 003A FE 47		bne	sleep_inner_loop
+  89 003C 80 A8		sub	r0, r0, #1
+  90 003E FA 47		bne	sleep_outer_loop
+  91           	sleep_end:
+  92 0040 0F B7		mov	pc, lr
+  93           	
+  94           	; Seccao:    data
+  95           	; Descricao: Guarda as variáveis globais
+  96           	;
+  97           	;	.data
+  98           	
+  99           	; Seccao:    stack
+ 100           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
+ 101           	;
+ 102           		.stack
+ 103 0042 00   		.space	STACK_SIZE
+ 103 .... ..
+ 103 0081 00
+ 104           	stack_top:
+ 104           	

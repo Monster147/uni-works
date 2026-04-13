@@ -1,0 +1,63 @@
+\chapter{Exercício 4}
+\label{cha:exercise_4}
+
+\section{Função de hash H16}
+
+Considera-se a função de hash \(H16(m)\) definida a partir do SHA-256, mas utilizando apenas os primeiros 16 bits do hash:
+
+\[
+H16(m) = SHA256(m)_{0..15}.
+\]
+
+Dois programas com códigos-fonte \(m\) e \(m'\) são considerados equivalentes (\(m \equiv m'\)) se a sua execução produz o mesmo resultado observável.
+
+O objetivo é encontrar um código-fonte \(m'\) tal que:
+\[
+H16(m') = H16(m_2) \quad \text{e} \quad m' \equiv m_1.
+\]
+
+\section{Implementação em Java}
+
+Para realizar o ataque de colisão parcial, foi implementada uma aplicação Java usando a biblioteca JCA:
+
+\begin{itemize}
+    \item \texttt{H16.java}: implementa a função \(H16\) a partir do SHA-256, retornando apenas os dois primeiros bytes.
+    \item \texttt{CollisionFinder.java}: lê o código de \texttt{BadApp.java}, insere um nonce incremental, e testa se o \(H16\) coincide com o de \texttt{GoodApp.java}. Quando encontra uma colisão, escreve o candidato em \texttt{BadApp\_candidate.java}.
+\end{itemize}
+
+\subsection*{Resumo do algoritmo}
+
+\begin{enumerate}
+    \item Lê o ficheiro \texttt{GoodApp.java} e calcula \(H16(m_2)\).
+    \item Itera sobre nonces, inserindo-os como comentário no código \texttt{BadApp.java}.
+    \item Calcula \(H16(m')\) do candidato.
+    \item Se \(H16(m') = H16(m_2)\), grava o ficheiro e termina.
+\end{enumerate}
+
+\section{Resultados e ambiente de teste}
+
+O programa foi executado em três máquinas com características diferentes, realizando três medições em cada uma:
+
+\begin{itemize}
+    \item \textbf{Laptop José} -- Windows 11, Intel i7-12700H, RTX 4070 Laptop, 16GB RAM  
+    Tempos (segundos): 3.075, 3.036, 3.016  
+    Média: 3.042 s
+    \item \textbf{Laptop Vasco} -- Windows 11, Intel i5-1135G7, IGPU, 16GB RAM  
+    Tempos (segundos): 4.600, 6.200, 5.147  
+    Média: 5.316 s
+    \item \textbf{Laptop Ricardo} -- Windows 11, Intel i7-1255U, IGPU, 16GB RAM  
+    Tempos (segundos): 6.456, 6.063, 5.966  
+    Média: 6.162 s
+\end{itemize}
+
+Em média, a colisão foi encontrada após aproximadamente \textbf{11\,427 tentativas}, confirmando que a função \(H16\) é vulnerável a ataques de colisão devido ao reduzido tamanho do hash (16 bits).
+
+\section{Consequências para SHA-256 completo}
+
+Se fosse possível realizar este tipo de ataque sobre os 256 bits do SHA-256, as consequências seriam graves para esquemas de assinatura digital:
+
+\begin{itemize}
+    \item Um atacante poderia criar mensagens diferentes que gerassem o mesmo hash, permitindo falsificação de assinaturas digitais.
+    \item A segurança de integridade e autenticidade oferecida por SHA-256 seria comprometida.
+    \item No entanto, devido ao tamanho do hash (256 bits), ataques de colisão completos são computacionalmente impraticáveis atualmente.
+\end{itemize}

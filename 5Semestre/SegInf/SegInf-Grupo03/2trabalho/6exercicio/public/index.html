@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <link rel="stylesheet" href="/style.css">
+    <head>
+        <title>GitTasks</title>
+    </head>
+    <body>
+        <h1>GitTasks</h1>
+        <p>Papel atual: <span id="role"></span></p>
+
+        <div id="login-buttons">
+            <a href="/login/google"><button id="google-btn">Login Google</button></a>
+            <a href="/login/github"><button id="github-btn">Login GitHub</button></a>
+            <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+        </div>  
+    </div>
+
+        <div id="user-info"></div>
+
+        <script src="app.js"></script>
+        <script>
+            loadUser();
+        </script>
+
+        <hr>
+
+        <h2>Ver informações de um repositório GitHub</h2>
+        <h3>Link deve ser do tipo: https://github.com/OWNER/REPO</h3>
+        <input id='repo-link' placeholder="Link do repositório GitHub">
+        <button onclick="fetchRepoInfo()">Ver informações do repositório</button>
+
+        <pre id='repo-info'></pre>
+
+        <hr>
+        
+        <h2>Listar repositórios do utilizador GitHub: <span id="github-user"></span></h2>
+        <button onclick="fetchRepositories()">Listar repositórios</button>
+
+        <pre id='repositories'></pre>
+
+        <hr>
+
+        <h2>Ver milestones</h2>
+        <input id='repoM' placeholder="Nome do repositório GitHub">
+        <input id='ownerM' placeholder="Owner do repositório GitHub">
+        <button onclick="fetchMilestones()">Listar milestones do repositório</button>
+
+        <pre id='milestones'></pre>
+
+
+        <hr>
+
+        <h2>Listar todas as tasks do utilizador Google: <span id="google-user"></span></h2>
+        <button onclick="fetchTasks()">Listar tasks</button>
+
+        <pre id='tasks'></pre>
+        
+        <hr>   
+
+        <h2>Listar detalhes de uma task do utilizador Google: <span id="google-user"></span></h2>
+        <input id='listNumber' placeholder="Número da lista">
+        <button onclick="fetchTask()">Listar informações da lista</button>
+
+        <pre id='task'></pre>
+        
+        <hr>        
+
+        <h2>Criar tasks para o utilizador Google: <span id="google-user"></span></h2>
+        <h3>Requer papel regular ou premium</h3>
+        <input id='repoT' placeholder="Nome do Repositório">
+        <input id='ownerT' placeholder="Owner do Repositório">
+        <input id='milestoneNumber' placeholder="Número da milestone">
+        <input id='listName' placeholder="GitTasks Default List" disabled=true>
+        <button onclick="createTask()">Criar task</button>
+
+        <pre id='newTask'></pre>
+
+        <script src="app.js"></script>
+    </body>
+</html>

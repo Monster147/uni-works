@@ -1,0 +1,25 @@
+<section class="container p-2">
+  <h2>Team Details</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Stadium</th>
+        <th>Competitions disputed</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{team.name}}</td>
+        <td>{{team.stadium}}</td>
+        <td>
+          <ul>
+            {{#each team.leagues}}
+              <li>{{this.name}} (Season: {{this.season}})</li>
+            {{/each}}
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>

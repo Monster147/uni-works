@@ -1,0 +1,87 @@
+% 
+%  chapter2.tex
+%  ReportISEL
+%  
+%  Created by Matilde Pós-de-Mina Pato on 2012/10/09.
+%  Modified by José Saldanha, Ricardo Pinto and Afonso Jesus on 2025/06/02
+%
+\chapter{Exercício 2}
+\label{cha:exercise_2}
+
+\section{Implementação da comunicação}
+
+Pretende-se implementar o envio e receção de uma mensagem entre \textbf{Alice} e \textbf{Bob}, usando um
+esquema de \textbf{cifra/decifra assimétrica} e a função de hash \texttt{SHA256}.
+A chave pública de Bob (\texttt{KeBob}) é usada por Alice para cifrar a mensagem, e a chave privada de Bob (\texttt{KdBob}) é usada para a decifrar.
+
+\subsection*{Envio (Alice)}
+
+\begin{verbatim}
+# Cifra a mensagem com a chave pública de Bob
+openssl rsautl -encrypt -inkey KeBob.pem -pubin -in m -out c
+
+# Calcula o hash SHA256 da mensagem original
+openssl dgst -sha256 -binary m > h
+
+# Concatena ambos os ficheiros
+cat c h > ch
+\end{verbatim}
+
+Assim, o ficheiro \texttt{ch} contém o criptograma e o hash:
+\[
+ch = E_a(Ke_{Bob})(m) || SHA256(m)
+\]
+
+\subsection*{Receção (Bob)}
+
+\begin{verbatim}
+# Divide o ficheiro recebido
+head -c <tam_c> ch > c
+tail -c 32 ch > h
+
+# Decifra com a chave privada de Bob
+openssl rsautl -decrypt -inkey KdBob.pem -in c -out m
+
+# Recalcula o hash da mensagem decifrada
+openssl dgst -sha256 -binary m > h2
+
+# Compara os hashes
+cmp h h2 && echo "Mensagem íntegra" || echo "Falha de integridade"
+\end{verbatim} 
+
+No final do processo, Bob obtém a mensagem original $m$ e verifica se o hash corresponde ao valor enviado.
+
+\section{Análise de confidencialidade e integridade}
+
+\subsection*{Confidencialidade}
+
+A cifra assimétrica garante \textbf{confidencialidade}, pois a mensagem é cifrada com a chave pública de Bob:
+\[
+m = D_a(Kd_{Bob})(c)
+\]
+Apenas Bob, possuindo a chave privada correspondente, consegue decifrar a mensagem. Um atacante que intercepte o criptograma \(c\) não consegue recuperar \(m\) sem conhecer \(Kd_{Bob}\).
+
+\subsection*{Integridade e autenticidade}
+
+O hash SHA256 permite verificar se a mensagem foi alterada após a transmissão. Contudo, este esquema \textbf{não garante integridade de forma robusta} nem autenticidade de Alice:
+
+\begin{itemize}
+  \item O hash é enviado em claro juntamente com o criptograma:
+  \[
+  ch = E_a(Ke_{Bob})(m) \;||\; SHA256(m)
+  \]
+  Um atacante poderia substituir o criptograma \(c\) e criar um novo par \((c', h')\), o que poderia induzir Bob a aceitar uma mensagem alterada.
+  
+  \item Para garantir \textbf{integridade} e \textbf{autenticidade}, recomenda-se que:
+  \begin{itemize}
+    \item o hash seja protegido com uma chave secreta (por exemplo, usando HMAC), ou
+    \item a mensagem seja assinada digitalmente por Alice:
+    \[
+    s = S(Kd_{Alice})(SHA256(m))
+    \]
+    permitindo que Bob verifique a assinatura:
+    \[
+    V(Ke_{Alice})(s, SHA256(m)) = \text{true}
+    \]
+  \end{itemize}
+\end{itemize}

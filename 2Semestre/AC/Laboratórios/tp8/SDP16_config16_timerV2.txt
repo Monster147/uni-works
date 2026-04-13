@@ -1,0 +1,27 @@
+ram
+id=0
+databus=P16Low
+addrbits=14
+addrsel=0000,7FFF
+
+ram
+id=1
+databus=P16High
+addrbits=14
+addrsel=0000,7FFF
+
+outputport
+id=2
+databus=P16Low
+addrsel=FF00,FFFF
+
+inputport
+id=3
+databus=P16Low
+addrsel=FF80,FFBF
+
+timer=PICO_Timer
+id=4
+databus=P16Low
+addrsel=FF40,FF7F
+clk=10 Hz

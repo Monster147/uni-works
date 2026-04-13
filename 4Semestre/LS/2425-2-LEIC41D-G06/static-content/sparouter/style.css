@@ -1,0 +1,141 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Poppins, sans-serif;
+}
+
+.hero{
+    min-width: 100%;
+    min-height: 100vh;
+    background-image: url(images/fundo_site.jpg);
+    background-position: center;
+    background-size: cover;
+    padding: 10px 10%;
+    overflow: hidden;
+    position: relative;
+}
+
+nav{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.logo{
+    width: 15%;
+}
+
+nav div {
+    display: inline-block;
+    list-style: none;
+    margin: 0 30%;
+}
+
+nav div a{
+    text-align: left;
+    margin: 10px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 400;
+}
+
+.btn{
+    display: inline-block;
+    text-decoration: none;
+    padding: 14px 30px;
+    color: #fff !important;
+    background-image: linear-gradient(45deg, darkcyan, orangered, red);
+    font-size: 14px;
+    border-radius: 30px 0 30px 30px;
+    transition: 0.5s;
+}
+
+.content{
+    min-width: 50px;
+    margin-top: 5%;
+    max-width: 600px;
+}
+
+.header h1{
+    font-size: 60px;
+    font-weight: bold;
+}
+.footer h1{
+    margin-top: 40px;
+    font-size: 30px;
+    font-weight: bold;
+
+}
+
+.h2{
+    font-size: 20px;
+
+}
+
+.p{
+    font-size: 16px;
+}
+
+.content h1{
+    font-size: 70px;
+    color: #222;
+}
+
+.content p{
+    margin: 10px 0 30px;
+    color: #333;
+    animation-delay: 0.5s;
+}
+
+.feature-image{
+    width: 450px;
+    position: absolute;
+    top: 10%;
+    right: 2%;
+
+}
+.feature-image.anim{
+    animation-delay: 1.5s;
+}
+
+.anim{
+    opacity: 0;
+    transform: translateY(50px);
+    animation: moveUp 0.5s linear forwards;
+}
+@keyframes moveUp {
+    100%{
+        opacity: 1;
+        transform: translateY(0px);
+    }
+}
+
+#mainContent {
+    min-width: 100px;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-image: url(images/textura_fundo.jpg);
+    background-size: cover;
+}
+
+#mocha h1 {
+    font-size: 16px;
+    font-weight: normal;
+}
+#mocha-report .test h2 {
+    font-size: 15px;
+}
+#mocha .progress {
+    height: 60px;
+    border: 7px solid;
+    border-radius: 50%;
+    width: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    top: -15px;
+}

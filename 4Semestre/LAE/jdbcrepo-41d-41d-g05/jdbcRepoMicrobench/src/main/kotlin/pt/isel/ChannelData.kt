@@ -1,0 +1,55 @@
+package pt.isel
+
+val channelData: List<Map<String, Any>> =
+    listOf(
+        mapOf(
+            "name" to "General",
+            "type" to "PUBLIC",
+            "created_at" to 1707720000L,
+            "is_archived" to false,
+            "max_message_length" to 500,
+            "max_members" to 100,
+            "is_read_only" to false,
+            "last_message_timestamp" to 1707722600L,
+        ),
+        mapOf(
+            "name" to "Development",
+            "type" to "PRIVATE",
+            "created_at" to 1707720001L,
+            "is_archived" to false,
+            "max_message_length" to 1000,
+            "max_members" to 50,
+            "is_read_only" to false,
+            "last_message_timestamp" to 1707722500L,
+        ),
+        mapOf(
+            "name" to "Support",
+            "type" to "PUBLIC",
+            "created_at" to 1707720002L,
+            "is_archived" to false,
+            "max_message_length" to 500,
+            "max_members" to 20,
+            "is_read_only" to true,
+            "last_message_timestamp" to 1707722000L,
+        ),
+        mapOf(
+            "name" to "Gaming Chat",
+            "type" to "PUBLIC",
+            "created_at" to 1707720003L,
+            "is_archived" to false,
+            "max_message_length" to 500,
+            "max_members" to 200,
+            "is_read_only" to false,
+            "last_message_timestamp" to 1707722200L,
+        ),
+        mapOf(
+            "name" to "Esports Discussion",
+            "type" to "PRIVATE",
+            "created_at" to 1707720004L,
+            "is_archived" to false,
+            "max_message_length" to 800,
+            "max_members" to 30,
+            "is_read_only" to false,
+            "last_message_timestamp" to 1707722700L,
+        ),
+    )

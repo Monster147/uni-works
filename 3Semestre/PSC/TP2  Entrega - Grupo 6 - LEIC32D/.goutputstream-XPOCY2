@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <jansson.h>
+
+#define PRODUCTS_URI				"https://dummyjson.com/products/1"
+
+#define ID_KEY						"id"
+#define TITLE_KEY					"title"
+#define DESCRIPTION_KEY				"description"
+#define CATEGORY_KEY				"category"
+#define PRICE_KEY					"price"
+#define DISCOUNT_PERCENTAGE_KEY		"discountPercentage"
+#define RATING_KEY					"rating"
+#define STOCK_KEY					"stock"
+#define TAGS_KEY					"tags"
+#define BRAND_KEY					"brand"
+#define SKU_KEY						"sku"
+#define WEIGHT_KEY					"weight"
+#define DIMENSIONS_KEY				"dimensions"
+#define DIMENSIONS_WIDTH_KEY		"width"
+#define DIMENSIONS_HEIGHT_KEY		"height"
+#define DIMENSIONS_DEPTH_KEY		"depth"
+#define WARRANTY_INFORMATION_KEY	"warrantyInformation"
+#define SHIPPING_INFORMATION_KEY	"shippingInformation"
+#define AVAILABILITY_STATUS_KEY		"availabilityStatus"
+#define REVIEWS_KEY					"reviews"
+#define REVIEW_RATING_KEY			"rating"
+#define REVIEW_COMMENT_KEY			"comment"
+#define REVIEW_DATE_KEY				"date"
+#define REVIEW_REVIEWER_NAME_KEY	"reviewerName"
+#define REVIEW_REVIEWER_MAIL_KEY	"reviewerMail"
+#define RETURN_POLICY_KEY			"returnPolicy"
+#define MINIMUM_ORDER_QUANTITY_KEY	"minimumOrderQuantity"
+#define META_KEY					"meta"
+#define META_CREATED_AT_KEY			"createdAt"
+#define META_UPDATED_AT_KEY			"updatedAt"
+#define META_BARCODE_KEY			"barcode"
+#define META_QR_CODE_KEY			"qrCode"
+#define IMAGES_KEY					"images"
+#define THUMBNAIL_KEY				"thumbnail"
+
+json_t *http_get_json(const char *url);
+
+int main() {
+    json_t *json = http_get_json(PRODUCTS_URI);
+    int r;
+	int id, stock, weight, minimumOrderQuantity;
+	char * title, * description, * category, * brand, * sku, * warrantyInformation, * shippingInformation, * availabilityStatus,
+	* returnPolicy, * createAt, * updateAt, * barcode, * qrCode, * thumbnail;
+	double price, discountPercentage, rating, width, height, depth;
+
+    // Unpack the JSON values
+    r = json_unpack(json,
+    "{s:i, s:s, s:s, s:s, s:f, s:f, s:f, s:i, s:o, s:s, s:s, s:i, s:{s:f, s:f, s:f}, s:s, s:s, s:s, s:o, s:s, s:i, s:{s:s, s:s, s:s, s:s}, s:o, s:s}",
+    ID_KEY, &id, 
+    TITLE_KEY, &title,
+    DESCRIPTION_KEY, &description,
+    CATEGORY_KEY, &category,
+    PRICE_KEY, &price,
+    DISCOUNT_PERCENTAGE_KEY, &discountPercentage,
+    RATING_KEY, &rating,
+    STOCK_KEY, &stock,
+   // TAGS_KEY, &tags
+    BRAND_KEY, &brand,
+    SKU_KEY, &sku,
+    WEIGHT_KEY, &weight,
+    DIMENSIONS_KEY,
+    DIMENSIONS_WIDTH_KEY, &width,
+    DIMENSIONS_HEIGHT_KEY, &height,
+    DIMENSIONS_DEPTH_KEY, &depth,
+    WARRANTY_INFORMATION_KEY, &warrantyInformation,
+    SHIPPING_INFORMATION_KEY, &shippingInformation,
+    AVAILABILITY_STATUS_KEY, &availabilityStatus,
+	//REVIEWS_KEY, &value,
+    RETURN_POLICY_KEY, &returnPolicy,
+    MINIMUM_ORDER_QUANTITY_KEY, &minimumOrderQuantity,
+    META_KEY,
+    META_CREATED_AT_KEY, &createAt,
+    META_UPDATED_AT_KEY, &updateAt,
+    META_BARCODE_KEY, &barcode,
+    META_QR_CODE_KEY, &qrCode,
+   // IMAGES_KEY, &value,
+    THUMBNAIL_KEY, &thumbnail
+    );
+    if (r != 0) {
+    printf("Error unpacking JSON\n");
+    return 1;
+}
+    printf("\tID: %d\n", id);
+    printf("\tTitle: %s\n", title);
+    printf("\tDescription: %s\n", description);
+    printf("\tCategory: %s\n", category);
+    printf("\tPrice: %.2f\n", price);
+    printf("\tDiscountPercentage: %.2f\n", discountPercentage);
+    printf("\tRating: %.2f\n", rating);
+    printf("\tStock: %d\n", stock);
+ //   printf("\tTags: %s\n", tags);
+   printf("\tBrand: %s\n", brand);
+   printf("\tSku: %s\n", sku);
+   printf("\tWeight: %d\n", weight);
+   printf("\tDimensions:\n");
+   printf("\t\tWidth: %.2f\n", width);
+   printf("\t\tHeight: %.2f\n", height);
+   printf("\t\tDepth: %.2f\n", depth);
+   printf("\tWarranty Information: %s\n", warrantyInformation);
+   printf("\tShipping Information: %s\n", shippingInformation);
+   printf("\tAvailability Status: %s\n", availabilityStatus);
+   printf("\tReturn Policy: %s\n", returnPolicy);
+   printf("\tMinimum Order Quantity: %d\n", minimumOrderQuantity);
+   printf("\tMeta:\n");
+   printf("\t\tCreate At: %s\n", createAt);
+   printf("\t\tUpdate At: %s\n", updateAt);
+   printf("\t\tBarcode: %s\n", barcode);
+    printf("\t\tQR Code: %s\n", qrCode);
+   //printf("\tImages: %s\n", category); 
+   printf("\tThumbnAIl: %s\n", thumbnail);
+    
+   return 0;
+}

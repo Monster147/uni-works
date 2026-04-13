@@ -1,0 +1,75 @@
+<section class="container p-2">
+  <h2>User Login Info</h2>
+  <div class="mb-3">
+    <label for="username" class="form-label">Name</label>
+    <input type="text" class="form-control" id="username" value="{{user.name}}" disabled>
+  </div>
+  
+  <div class="mb-3">
+    <label for="user-token" class="form-label">Token:</label>
+    <span id="user-token" class="hidden-info hidden" data-value="{{user.token}}"></span>
+  </div>
+  
+  <div class="mb-3">
+    <label for="user-password" class="form-label">Password:</label>
+    <span id="user-password" class="hidden-info hidden" data-value="{{user.password}}"></span>
+  </div>
+  
+  <button type="button" class="btn btn-primary" id="toggleInfoBtn">Show Info</button>
+
+  <form action="/site/logout" method="POST" class="mt-3">
+    <button type="submit" class="btn btn-danger">Logout</button>
+  </form>
+</section>
+
+<style>
+  
+  .hidden-info {
+    font-size: 16px;
+    letter-spacing: 2px;
+    user-select: none;
+  }
+
+  .hidden-info.hidden::before {
+    content: attr(data-dots); 
+    visibility: visible;
+  }
+
+  .hidden-info.hidden::after {
+    content: ""; 
+    visibility: hidden;
+  }
+  
+  .hidden-info:not(.hidden)::before {
+    content: attr(data-value); 
+    visibility: visible;
+  }
+
+  .hidden-info:not(.hidden)::after {
+    content: ""; 
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tokenField = document.getElementById('user-token');
+    const passwordField = document.getElementById('user-password');
+
+    [tokenField, passwordField].forEach(field => {
+      const value = field.getAttribute('data-value');
+      field.setAttribute('data-dots', '•'.repeat(value.length));
+    });
+
+    document.getElementById('toggleInfoBtn').addEventListener('click', function () {
+      if (tokenField.classList.contains('hidden')) {
+        tokenField.classList.remove('hidden');
+        passwordField.classList.remove('hidden');
+        this.textContent = 'Hide Info';
+      } else {
+        tokenField.classList.add('hidden');
+        passwordField.classList.add('hidden');
+        this.textContent = 'Show Info';
+      }
+    });
+  });
+</script>

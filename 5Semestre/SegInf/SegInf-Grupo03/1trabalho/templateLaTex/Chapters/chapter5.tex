@@ -1,0 +1,147 @@
+\chapter{Exercício 5}
+\label{cha:exercise_5}
+
+
+\section{Cifra autenticada e estabelecimento de chaves}
+
+O exercício 5.1 propõe a implementação de um esquema de cifra autenticada simétrica utilizando a biblioteca Java Cryptography Architecture (JCA). O objetivo é desenvolver uma aplicação capaz de cifrar e decifrar ficheiros garantindo simultaneamente \textbf{confidencialidade} e \textbf{autenticidade}. 
+
+A cifra autenticada segue o modelo:
+
+\[
+AE(k)(m) = E(k)(m) \parallel T(k)(E(k)(m))
+\]
+
+onde:
+\begin{itemize}
+    \item \(E\) é a função de cifra simétrica (AES em modo CBC com \textit{padding} PKCS\#5);
+    \item \(T\) é a função de MAC (HMAC-SHA256);
+    \item \(k\) é a chave secreta composta por duas partes (chave AES e chave HMAC);
+    \item \(m\) representa a mensagem original.
+\end{itemize}
+
+
+\subsection{Descrição geral da implementação}
+
+A aplicação \texttt{AEFile.java} implementa as funcionalidades necessárias de uma cifra autenticada. O programa aceita três modos de execução:
+\begin{itemize}
+    \item \texttt{-genkey}: geração de chaves simétricas;
+    \item \texttt{-cipher}: cifra e autenticação de um ficheiro;
+    \item \texttt{-decipher}: verificação de autenticidade e decifra.
+\end{itemize}
+
+A estrutura foi desenhada para funcionar com ficheiros de qualquer dimensão e processar dados em modo \textit{stream}, garantindo eficiência e escalabilidade.
+
+
+\subsection{Geração aleatória da chave}
+
+A função \texttt{generateKeyFile} cria um ficheiro de chaves em Base64 com duas linhas:
+\begin{itemize}
+    \item A primeira contém a chave AES de 256 bits para confidencialidade;
+    \item A segunda contém a chave HMAC de 256 bits para autenticidade.
+\end{itemize}
+
+As chaves são geradas de forma aleatória com \texttt{SecureRandom} e \texttt{KeyGenerator}, assegurando que cada execução produz chaves únicas e imprevisíveis.
+
+
+\subsection{Processo de cifra autenticada}
+
+O método \texttt{encryptFile} implementa o processo \textit{encrypt-then-MAC}, considerado seguro e recomendado. O fluxo é o seguinte:
+\begin{enumerate}
+    \item Gera-se um vetor de inicialização (IV) de 16 bytes.
+    \item Inicializa-se o cifrador AES em modo CBC-PKCS\#5 e o HMAC-SHA256.
+    \item Os dados do ficheiro são lidos por blocos, cifrados e passados pela função de MAC simultaneamente.
+    \item O resultado final é o concatenado \texttt{IV || ciphertext || tag} codificado em Base64 e gravado no ficheiro de saída.
+\end{enumerate}
+
+A inclusão do IV no cálculo do HMAC garante a integridade também do vetor de inicialização, protegendo contra ataques de substituição.
+
+
+\subsection{Processo de decifra e verificação}
+
+A função \texttt{decryptFile} realiza a decifra de forma controlada e segura:
+\begin{enumerate}
+    \item O ficheiro é descodificado de Base64 para obter o \texttt{IV}, o \texttt{ciphertext} e o \texttt{tag}.
+    \item O HMAC é recalculado sobre \texttt{IV || ciphertext} e comparado com o \texttt{tag} original.
+    \item Se o HMAC for válido, a mensagem é decifrada com AES/CBC e gravada no ficheiro de saída.
+    \item Caso contrário, a decifra não é realizada e o programa informa que a mensagem não é autêntica.
+\end{enumerate}
+
+Esta verificação assegura que modificações acidentais ou maliciosas no ficheiro são detetadas antes da decifra, preservando tanto a integridade como a confidencialidade dos dados.
+
+
+\subsection{Comandos e execução}
+
+A aplicação aceita três comandos principais:
+\begin{itemize}
+    \item \texttt{-genkey <keyfile>} — gera um ficheiro de chaves simétricas;
+    \item \texttt{-cipher <inputFile> <keyfile> <outputBase64File>} — cifra e autentica o ficheiro de entrada;
+    \item \texttt{-decipher <inputBase64File> <keyfile> <outputFile>} — verifica a autenticidade e decifra o ficheiro.
+\end{itemize}
+
+Este esquema garante um fluxo de operação seguro e modular, com clara separação entre as responsabilidades de cifra, autenticação e verificação.
+
+\section{Estabelecimento de chaves sem canal seguro}
+
+Na alínea anterior, a chave simétrica \(k\) era armazenada num ficheiro e teria de ser transmitida por um canal seguro entre as partes. Para eliminar essa necessidade, é possível recorrer a um \textbf{esquema híbrido} que combina criptografia assimétrica com simétrica, permitindo trocar a chave de forma segura mesmo através de canais não confiáveis.
+
+\subsection{Esquema híbrido de troca de chaves}
+
+Neste modelo, cada participante possui um par de chaves assimétricas:
+\begin{itemize}
+    \item Uma \textbf{chave pública} (\(PK\)), que pode ser partilhada livremente;
+    \item Uma \textbf{chave privada} (\(SK\)), que deve ser mantida secreta.
+\end{itemize}
+
+A comunicação inicia-se quando o remetente (A) quer enviar uma mensagem confidencial ao destinatário (B). O processo segue os seguintes passos:
+
+\begin{enumerate}
+    \item O remetente \(A\) gera uma chave simétrica temporária \(k\) (usada para AES e HMAC);
+    \item Cifra a mensagem \(m\) de acordo com o esquema autenticado:
+    \[
+    C = E_{k}(m) \parallel T_{k}(E_{k}(m))
+    \]
+    \item Cifra a chave simétrica \(k\) utilizando a \textbf{chave pública} do destinatário \(PK_B\):
+    \[
+    k_{enc} = E_{PK_B}(k)
+    \]
+    \item Envia o conjunto:
+    \[
+    AE_{hyb}(m) = k_{enc} \parallel C
+    \]
+    \item O destinatário \(B\), ao receber a mensagem, utiliza a sua \textbf{chave privada} \(SK_B\) para recuperar a chave simétrica:
+    \[
+    k = D_{SK_B}(k_{enc})
+    \]
+    \item Finalmente, usa \(k\) para decifrar e verificar a autenticidade de \(C\).
+\end{enumerate}
+
+Assim, a chave simétrica nunca é transmitida em texto simples e apenas o destinatário que possui a chave privada correspondente pode recuperá-la.
+
+\subsection{Modificação à definição (1)}
+
+A definição original do esquema autenticado era:
+\[
+AE(k)(m) = E(k)(m) \parallel T(k)(E(k)(m))
+\]
+
+No caso do esquema híbrido, esta definição é estendida para incluir a proteção da chave simétrica com criptografia assimétrica:
+
+\[
+AE_{hyb}(PK_B)(m) = E_{PK_B}(k) \parallel \big(E_{k}(m) \parallel T_{k}(E_{k}(m))\big)
+\]
+
+onde:
+\begin{itemize}
+    \item \(E_{PK_B}(k)\) é a cifra assimétrica da chave simétrica com a chave pública do destinatário;
+    \item \(E_{k}(m)\) e \(T_{k}(E_{k}(m))\) representam, respetivamente, a cifra e o código de autenticação (MAC) da mensagem usando a chave simétrica \(k\).
+\end{itemize}
+
+\subsection{Vantagens do esquema híbrido}
+
+\begin{itemize}
+    \item \textbf{Elimina a necessidade de um canal seguro:} a chave simétrica é protegida pela cifra assimétrica.
+    \item \textbf{Desempenho eficiente:} a criptografia simétrica é usada para os dados (rápida), e a assimétrica apenas para proteger a pequena chave \(k\).
+    \item \textbf{Confidencialidade garantida:} apenas quem possui a chave privada correspondente pode recuperar \(k\).
+    \item \textbf{Flexibilidade:} permite o uso de diferentes pares de chaves assimétricas sem alterar o algoritmo de cifra autenticada.
+\end{itemize}

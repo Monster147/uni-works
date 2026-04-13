@@ -1,0 +1,6 @@
+eva:$2b$05$qMG8FLe.mp3/rmBRvhclPOnNcIy7UzcBP3R29EskK.iWLx1Bf1WvO
+bob:$2b$05$77JoyNMdJnQEYinb1T4ZgesHmc08589Kz5tsL7ID6dNkdvnmmnki.
+carol:$2b$05$dHAbQ.MiU/7nPd.kT2BQjOIeh3F6yfF/FYDMV4yGdyyAinOgvFd0W
+alice:$2b$05$QtHaKabPOJnFWt3Tu1LWweVz5gYxvYgjqqhw6PCfVnBqLpiPzVUZy
+trudy:$2b$05$6IP34wcX.boCNKKpce86C.F4nTcPKNjysVzs35IEnP7lxRWqtfXWO
+mallory:$2b$05$xGWmmGS4OBzBZkvnMDdEwOqre11QnLjv.uD9E/Mh415uMAuk7hFU.

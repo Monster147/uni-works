@@ -1,0 +1,19 @@
+{
+  "teams": [
+    {
+      "id": 211,
+      "name": "Benfica",
+      "stadium": "Estádio do Sport Lisboa e Benfica (da Luz)"
+    },
+    {
+      "id": 228,
+      "name": "Sporting CP",
+      "stadium": "Estádio José Alvalade"
+    },
+    {
+      "id": 212,
+      "name": "FC Porto",
+      "stadium": "Estádio Do Dragão"
+    }
+  ]
+}

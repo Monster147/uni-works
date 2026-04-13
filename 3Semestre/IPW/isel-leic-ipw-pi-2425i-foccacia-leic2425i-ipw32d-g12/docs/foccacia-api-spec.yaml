@@ -1,0 +1,616 @@
+openapi: 3.0.1
+info:
+  title: FOCCACIA API
+  description: This API provides access to manage users, teams, leagues, and favorite team groups.
+  contact:
+    email: 51445@alunos.isel.pt
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - description: Localhost server for testing FOCCACIA API
+    url: http://localhost:8080
+security:
+  - bearerAuth: []
+tags:
+  - name: Users
+  - name: Teams
+  - name: Groups
+paths:
+  /users/signup:
+    description: The resource that contains all users
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      description: Create a new user and return a token.
+      operationId: createUser
+      requestBody:
+        description: User to create
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewUser"
+        required: true
+      responses:
+        201:
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        409:
+            $ref: "#/components/responses/409Conflict"
+  /users/login:
+    description: The resource that represents one user
+    get:
+      tags:
+        - Users
+      summary: Get current user info
+      description: Retrieve information for the currently authenticated user.
+      operationId: getUser
+      responses:
+        200:
+          description: Authenticated user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          description: Unauthorized - Token missing or invalid
+  /team/search:
+    post:
+      tags:
+        - Teams
+      summary: Search teams by name
+      description: Retrieve teams by their name using the external Football API
+      operationId: searchTeam
+      requestBody:
+        description: Team to search
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+        required: true
+      responses:
+        201:
+          description: Teams stored successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchedTeam"
+        400:
+          $ref: "#/components/responses/400BadRequest"
+  /teams/store:
+    post:
+      tags:
+        - Teams
+      summary: Store the searched teams in the array
+      description: Add the teams searched in cache to local memory.
+      operationId: addTeamFromAPItoTeams
+      requestBody:
+        description: Teams to store
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+        required: true
+      responses:
+        201:
+          description: Teams stored successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  $ref: "#/components/schemas/Team"
+                  message:
+                    type: string
+                    example: "Teams stored successfully"
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        409:
+          $ref: "#/components/responses/409Conflict"
+  /teams:
+    get:
+      tags:
+        - Teams
+      summary: Get all stored teams
+      description: Retrieve the list of teams stored in local memory.
+      operationId: getAllTeams
+      responses:
+        200:
+          description: List of stored teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        400:
+          $ref: "#/components/responses/400BadRequest"
+  /groups:
+    description: Resource that contains all Groups
+    get:
+      tags:
+        - Groups
+      summary: List all groups
+      description: Retrieve a list of all favorite team groups from an specified user (by token).
+      operationId: getAllGroups
+      responses:
+        200:
+          description: List of groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        401:
+          $ref: "#/components/responses/401Unauthorized"
+    post:
+      tags:
+        - Groups
+      summary: Adds a new group
+      description: Add a new group for the authenticated user.
+      operationId: addGroup
+      requestBody:
+        description: Group to create
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewGroup"
+        required: true
+      responses:
+        201:
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  group:
+                    $ref: "#/components/schemas/Group"
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        401:
+          $ref: "#/components/responses/401Unauthorized"
+  /groups/{groupId}:
+    description: The resource that represents one Group
+    get:
+      tags:
+        - Groups
+      summary: Get group details
+      description: Retrieve details of a specific group.
+      operationId: getGroup
+      parameters:
+        - name: groupId
+          in: path
+          description: Id of the group to be fetched
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        200:
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        404:
+          $ref: "#/components/responses/404NotFound"
+        401: 
+          $ref: "#/components/responses/401Unauthorized"
+    put:
+      tags:
+        - Groups
+      summary: Update a group
+      description: Update the details of a specific group.
+      operationId: updateGroup
+      parameters:
+        - name: groupId
+          in: path
+          description: Id of the group to be updated
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: Group data to update
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewGroup"
+      responses:
+        200:
+          description: Group updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        404:
+          $ref: "#/components/responses/404NotFound"
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        401: 
+          $ref: "#/components/responses/401Unauthorized"
+    delete:
+      tags:
+        - Groups
+      summary: Delete a group
+      description: Remove a group by its ID.
+      operationId: deleteGroup
+      parameters:
+        - name: groupId
+          in: path
+          description: ID of the group to be deleted
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Group deleted successfully
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        404:
+          $ref: "#/components/responses/404NotFound"
+        401:
+          $ref: "#/components/responses/401Unauthorized"
+    /groups/{groupId}/teams:
+      description: The resource that add a Team to one Group
+      post:
+        tags:
+          - Groups
+          - Teams
+        summary: Add a team to a group
+        description: Adds a team in teams array to a group
+        operationId: addTeamToGroup
+        parameters:
+          - name: groupId
+            in: path
+            description: Id of the group for the team to be added
+            required: true
+            schema:
+              type: integer
+              minimum: 1
+        requestBody:
+          description: Team to add
+          content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamToAdd"
+        responses:
+          200:
+            description: Team details
+            content:
+              application/json:
+                schema:
+                  message:
+                    type: string
+                    example: "Team added successfully"
+                  $ref: "#/components/schemas/Team"
+          400:
+            $ref: "#/components/responses/400BadRequest"
+          404:
+            $ref: "#/components/responses/404NotFound"
+          401: 
+            $ref: "#/components/responses/401Unauthorized"
+          409:
+            $ref: "#/components/responses/409Conflict"
+    /groups/{groupId}/teams/{teamId}:
+      description: The resource that removes a Team to one Group
+      delete:
+        tags:
+          - Groups
+          - Teams
+        summary: Removes a team to a group
+        description: Removes a team in teams array fo the group
+        operationId: removeTeamToGroup
+        parameters:
+          - name: groupId
+            in: path
+            description: Id of the group that will have a team deleted
+            required: true
+            schema:
+              type: integer
+              minimum: 1
+          - name: teamId
+            in: path
+            description: Id of the team to be deleted
+            required: true
+            schema:
+              type: integer
+              minimum: 1
+        responses:
+          200:
+            description: Team details
+            content:
+              application/json:
+                schema:
+                  message:
+                    type: string
+                    example: "Team removed successfully"
+          400:
+            $ref: "#/components/responses/400BadRequest"
+          404:
+            $ref: "#/components/responses/404NotFound"
+          401: 
+            $ref: "#/components/responses/401Unauthorized"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    NewUser:
+      type: object
+      required:
+        - userName
+      properties:
+        userName:
+          type: string
+          example: user123
+        password:
+          type: string
+          example: password123
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userName:
+          type: string
+          example: user123
+        token:
+          type: string
+          example: fe48478ge1-geg5-64e4-a8q3-jyjyt15jt4
+        password:
+          type: string
+          example: password123
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Manchester United
+        stadiumName:
+          type: string
+          example: Old Trafford
+        leagues:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: Manchester United
+              season:
+                type: integer
+                example: 2022
+          example: [ {id: 1, 
+                      name: Premier League,
+                      season: 2022}, 
+                      {id: 2, 
+                      name: Champions League,
+                      season: 2022},
+                    ]
+    SearchedTeam:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Manchester United
+        logo:
+          type: string
+          example: https://media.api-sports.io/football/teams/33.png
+        stadiumName:
+          type: string
+          example: Old Trafford
+        leagues:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: Manchester United
+              season:
+                type: integer
+                example: 2022
+          example: [ {id: 1, 
+                      name: Premier League,
+                      season: 2022}, 
+                      {id: 2, 
+                      name: Champions League,
+                      season: 2022},
+                    ]
+    TeamToAdd:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Manchester United
+    NewGroup:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          example: My Favorites
+        description:
+          type: string
+          example: All my favorite teams
+    Group:
+      allOf:
+        - $ref: "#/components/schemas/NewGroup"
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            userId:
+              type: integer
+              example: 2
+            teams:
+              type: array
+              example: [{ id: 1, 
+                          name: 'Manchester United',
+                          stadium: 'Old Trafford',
+                          leagues: [{id: 39, name: "Premier League", season: 2022}]
+                        }]
+    MissingParameter:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 1
+        error:
+          type: string
+          example: "Missing paramer: abdca"
+    InvalidParameter:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 2
+        error:
+          type: string
+          example: "Invalid parameter: abc"
+    InvalidBody:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 3
+        error:
+          type: string
+          example: "Invalid request body"
+    GroupNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 4
+        error:
+          type: string
+          example: "Group 1 not found or unauthorized"
+    TeamNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 5
+        error:
+          type: string
+          example: "Team 38 not found"
+    DuplicateTeam:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 6
+        error:
+          type: string
+          example: "Team 458 already exists"
+    UserNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 7
+        error:
+          type: string
+          example: "User not found"
+    DuplicateUser:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 8
+        error:
+          type: string
+          example: "User newUser1234 already exists"
+    Unauthorized:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 9
+        error:
+          type: string
+          example: "Not authorized to access abcde"
+    MissingToken:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 10
+        error:
+          type: string
+          example: "Missing authorization token"
+  responses:
+    404NotFound:
+      description: "Resource not found"
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/GroupNotFound"
+              - $ref: "#/components/schemas/TeamNotFound"
+    400BadRequest:
+      description: "Invalid Request because of a missing Parameter or invalid body content"
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/MissingParameter"
+              - $ref: "#/components/schemas/InvalidParameter"
+              - $ref: "#/components/schemas/InvalidBody"
+    401Unauthorized:
+      description: "Access to the resource is unauthorized."
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/UserNotFound"
+              - $ref: "#/components/schemas/Unauthorized"
+              - $ref: "#/components/schemas/MissingToken"
+    409Conflict:
+      description: "There already exists said result in the resource"
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/DuplicateTeam"
+              - $ref: "#/components/schemas/DuplicateUser"  

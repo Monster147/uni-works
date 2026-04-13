@@ -1,0 +1,47 @@
+\babel@toc {english}{}\relax 
+\setcounter {tocdepth}{-1}
+\contentsline {chapter}{Contents}{iii}{chapter*.3}%
+\setcounter {tocdepth}{3}
+\babel@toc {portuguese}{}\relax 
+\contentsline {chapter}{\numberline {1}Exercício 1}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Quebra de Passwords com John the Ripper}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Execução com opções por omissão}{1}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Ataque com dicionário}{2}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Ataque direcionado à password da mallory}{2}{section.1.4}%
+\contentsline {chapter}{\numberline {2}Exercício 2}{5}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Estado de autenticação no Moodle}{5}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Acesso ao perfil usando outro cliente}{6}{section.2.2}%
+\contentsline {chapter}{\numberline {3}Exercício 3}{7}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Integração OAuth2 e OpenID Connect do Calendly}{7}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Autenticação com Microsoft}{7}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Autenticação com Google}{8}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Comparação entre Microsoft e Google}{9}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Presença do access token e id token no browser}{9}{section.3.5}%
+\contentsline {chapter}{\numberline {4}Exercício 4}{11}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Política de controlo de acessos}{11}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Análise de acesso}{11}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Conclusão}{12}{section.4.3}%
+\contentsline {chapter}{\numberline {5}Exercício 5}{13}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Configuração de um servidor HTTPS e autenticação de cliente}{13}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}Configuração sem autenticação de cliente}{13}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Configuração com autenticação de cliente}{14}{subsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.1.3}(i) Algoritmos de segurança usados no Record Protocol}{15}{subsection.5.1.3}%
+\contentsline {paragraph}{Confidencialidade das mensagens:}{15}{subsection.5.1.3}%
+\contentsline {paragraph}{Autenticidade e integridade:}{15}{subsection.5.1.3}%
+\contentsline {paragraph}{Estabelecimento de chaves e Perfect Forward Secrecy:}{15}{subsection.5.1.3}%
+\contentsline {paragraph}{Autenticação dos participantes}{15}{subsection.5.1.3}%
+\contentsline {subsection}{\numberline {5.1.4}(ii) Vulnerabilidade da cipher suite TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA256}{16}{subsection.5.1.4}%
+\contentsline {section}{\numberline {5.2}Ligação a servidor HTTPS usando JCA}{16}{section.5.2}%
+\contentsline {chapter}{\numberline {6}Exercício 6}{19}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Aplicação Web GitTasks}{19}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Configuração e variáveis de ambiente}{19}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Autenticação de utilizadores}{20}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Autorização e papéis (RBAC)}{20}{section.6.4}%
+\contentsline {subsection}{\numberline {6.4.1}Atribuição de papéis}{20}{subsection.6.4.1}%
+\contentsline {subsection}{\numberline {6.4.2}Permissões}{21}{subsection.6.4.2}%
+\contentsline {section}{\numberline {6.5}Integração com GitHub}{21}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Integração com Google Tasks}{21}{section.6.6}%
+\contentsline {section}{\numberline {6.7}Sessões e armazenamento em memória}{21}{section.6.7}%
+\contentsline {section}{\numberline {6.8}Interface Web}{22}{section.6.8}%
+\contentsline {section}{\numberline {6.9}Segurança e controlo de acesso}{22}{section.6.9}%
+\contentsline {section}{\numberline {6.10}Resumo}{22}{section.6.10}%

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="images/isel_imagem.png" type="image/x-icon">
+    <title>API Tests</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../sparouter/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="hero">
+    <nav>
+        <img src="../sparouter/images/isel_imagem_clara_2.png" class="logo">
+    </nav>
+    <div class="content">
+        <h1 class="anim">API Router Tests</h1>
+        <p class="anim">Running Mocha and Chai tests for the API Router</p>
+
+        <div id="mocha"></div>
+
+        <script src="https://unpkg.com/chai@4.0.1/chai.js"></script>
+        <script src="https://unpkg.com/mocha@4.0.1/mocha.js"></script>
+
+        <script class="mocha-init" type="module">
+            mocha.setup('bdd')
+        </script>
+        <script src="test.router.js" type="module"></script>
+
+        <script type="module" class="mocha-exec">
+            mocha.checkLeaks();
+            chai.should()
+        </script>
+    </div>
+    <footer class="footer">
+        <h1>Contacts: A51561@alunos.isel.pt || 51445@alunos.isel.pt || 51447@alunos.isel.pt</h1>
+    </footer>
+</div>
+</body>
+</html>

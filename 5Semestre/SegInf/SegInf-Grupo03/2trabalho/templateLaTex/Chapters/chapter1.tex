@@ -1,0 +1,48 @@
+% 
+%  chapter1.tex
+%  
+%  Created by Matilde Pós-de-Mina Pato on 2012/10/09.
+%  Modified by José Saldanha, Ricardo Pinto and Afonso Jesus on 2025/06/02
+%
+\chapter{Exercício 1}
+\label{cha:exercise_1}
+
+\section{Quebra de Passwords com John the Ripper}
+
+Neste exercício analisam-se os resultados da quebra de passwords presentes nas bases de utilizadores \texttt{md5.txt} e \texttt{bcrypt.txt}, ambas armazenando hashes com \textit{salt}. Os testes foram realizados com a ferramenta \texttt{John the Ripper}, utilizando diferentes modos de ataque.
+
+\section{Execução com opções por omissão}
+
+O comando executado para cada base foi: \begin{verbatim} $ john NOME_FICHEIRO \end{verbatim}
+
+As execuções decorreram durante pelo menos 10 minutos, conforme solicitado.
+
+\subsection*{Resultados sobre bcrypt} Foram quebradas três passwords: \begin{itemize} \item eva -- 123456 \item bob -- 123456789 \item carol -- password \end{itemize}
+
+Todas as passwords foram quebradas em milissegundos entre si, dado o custo reduzido (5) e a fraqueza das passwords. A password mais lenta a ser quebrada foi a da utilizadora \textbf{eva}.
+
+\subsection*{Resultados sobre MD5} Foram igualmente quebradas as mesmas três passwords: \begin{itemize} \item eva -- 123456 \item bob -- 123456789 \item carol -- password \end{itemize}
+
+Também neste caso a password da \textbf{eva} foi a mais lenta.
+
+Não se observaram diferenças significativas de desempenho entre MD5 e bcrypt (com custo baixo), pois todas as passwords eram fracas.
+
+\section{Ataque com dicionário}
+
+O comando utilizado foi: \begin{verbatim} $ john --wordlist=rockyou.txt --rules NOME_FICHEIRO \end{verbatim}
+
+A wordlist \texttt{rockyou.txt} e as regras associadas permitiram quebrar passwords adicionais: \begin{itemize} \item trudy -- (quebrada através do dicionário) \item alice -- (quebrada através do dicionário) \end{itemize}
+
+A password da utilizadora \textbf{mallory} permaneceu não quebrada após este ataque.
+
+\section{Ataque direcionado à password da mallory}
+
+A password da mallory foi gerada aleatoriamente pelo site \texttt{random.org}, que apresenta ao utilizador 5 possíveis passwords. Supondo que um atacante obteve essa lista, foi usada a seguinte wordlist: \begin{verbatim} possiblePasswords.lst \end{verbatim}
+
+O comando executado foi: \begin{verbatim} $ john --wordlist=possiblePasswords.lst NOME_FICHEIRO \end{verbatim}
+
+Os resultados foram os seguintes: \begin{itemize} \item A password da \textbf{mallory} foi quebrada com sucesso. \item O tempo necessário foi praticamente nulo, dado que apenas existiam cinco possíveis passwords. \item Nenhuma outra password foi quebrada, dado que as restantes não constavam na wordlist. \end{itemize}
+
+\section*{Conclusões}
+
+\begin{itemize} \item As passwords fracas foram facilmente quebradas em todos os cenários. \item O ataque de dicionário permitiu quebrar passwords adicionais (trudy e alice). \item A password da mallory só foi quebrada quando se utilizou uma wordlist contendo diretamente as cinco possíveis passwords. \end{itemize}

@@ -1,0 +1,28 @@
+INCLUDE_DIR = ./include
+SRC_DIR = ../ex
+
+LIBRARY = psc_tp2
+TARGET = ex4_main
+
+SRCS = ex4_main.c 
+OBJS = $(patsubst %.c, %.o, $(SRCS))
+
+CFLAGS = -Wall -g -I$(INCLUDE_DIR)
+LDFLAGS = -L. -l$(LIBRARY) -ljansson -lcurl
+
+all: lib$(LIBRARY).so $(TARGET)
+
+export LD_LIBRARY_PATH=.:$LD_LIBRARY//tenho de ver isto
+
+lib$(LIBRARY).so: $(SRC_DIR)3/products_get.c $(SRC_DIR)3/users_get.c $(SRC_DIR)3/cart_put.c $(SRC_DIR)2/http_post_json.c
+	gcc -Wall -Og -fPIC -shared -o $@ $^
+
+$(TARGET): $(OBJS) 
+	gcc -o $@ $^ $(LDFLAGS)
+
+%.o: %.c
+	gcc $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(TARGET) $(OBJS) $/lib$(LIBRARY).so
+

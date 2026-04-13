@@ -1,0 +1,797 @@
+openapi: 3.0.3
+info:
+  title: Phase 1
+  version: 0.1.0
+  description: Phase 1
+  contact:
+    emails:
+      - a51445@alunos.isel.pt
+      - a51447@alunos.isel.pt
+      - a51561@alunos.isel.pt
+servers:
+  - description: Localhost server for testing
+    url: http://localhost:8080
+tags:
+  - name: Club
+  - name: Court
+  - name: Rental
+  - name: User
+paths:
+  /users:
+    post:
+      tags:
+        - User
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        201:
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        409:
+          $ref: "#/components/responses/409Conflict"
+  /users/{userId}:
+    get:
+      tags:
+        - User
+      summary: Get details from a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: User id
+      responses:
+        200:
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /users/login:
+    post:
+      tags:
+        - User
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                password:
+                  type: string
+              required:
+                - name
+                - password
+      responses:
+        200:
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uid:
+                    type: integer
+                  token:
+                    type: string
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        401:
+          $ref: "#/components/responses/401Unauthorized"
+  /clubs:
+    get:
+      tags:
+        - Club
+      summary: Get all clubs
+      responses:
+        200:
+          description: A list of clubs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Club'
+    post:
+      tags:
+        - Club
+      summary: Create a new club
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewClub'
+      responses:
+        201:
+          description: Club created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        409:
+          $ref: "#/components/responses/409Conflict"
+  /clubs/{clubId}:
+    get:
+      tags:
+        - Club
+      summary: Get details from a club
+      parameters:
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Club id
+      responses:
+        200:
+          description: Club found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /clubs/search/{name}:
+    get:
+      tags:
+        - Club
+      summary: Get all clubs with a specific name
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Club name
+      responses:
+        200:
+          description: A list of clubs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Club'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /courts:
+    get:
+      tags:
+        - Court
+      summary: Get all courts
+      responses:
+        '200':
+          description: A list of courts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Court'
+    post:
+      tags:
+        - Court
+      summary: Create a new court
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCourt'
+      responses:
+        201:
+          description: Court created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        409:
+          $ref: "#/components/responses/409Conflict"
+  /courts/{courtId}:
+    get:
+      tags:
+        - Court
+      summary: Get details from a court
+      parameters:
+        - name: courtId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Court id
+      responses:
+        200:
+          description: Court found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /courts/clubs/{clubId}:
+    get:
+      tags:
+        - Court
+        - Club
+      summary: Get all courts associated to a club
+      parameters:
+        - name: courtId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Court ID
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Club ID
+      responses:
+        200:
+          description: A list of courts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourtClub'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /rentals:
+    post:
+      tags:
+        - Rental
+      summary: Create a new rental
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewRental'
+      responses:
+        201:
+          description: Rental created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        400:
+          $ref: "#/components/responses/400BadRequest"
+        409:
+          $ref: "#/components/responses/409Conflict"
+  /rentals/{rentalId}:
+    get:
+      tags:
+        - Rental
+      summary: Get details from a rental
+      parameters:
+        - name: rentalId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Rental id
+      responses:
+        200:
+          description: Rental found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        404:
+          $ref: "#/components/responses/404NotFound"
+    post:
+      tags:
+        - Rental
+      summary: Update a rental
+      parameters:
+        - name: rentalId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Rental id
+      responses:
+        200:
+          description: Rental updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        404:
+          $ref: "#/components/responses/404NotFound"
+    delete:
+      tags:
+        - Rental
+      summary: Delete a rental
+      parameters:
+        - name: rentalId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Rental id
+      responses:
+        200:
+          description: Rental deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Rental deleted successfully"
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /rentals/clubs/{clubId}/courts/{courtId}/{date}:
+    get:
+      tags:
+        - Rental
+        - Club
+        - Court
+      summary: Get all rentals associated to a club and court in a specific date
+      parameters:
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Club ID
+        - name: courtId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Court ID
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Rental date (YYYY-MM-DD)
+      responses:
+        200:
+          description: A list of rentals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rental'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /rentals/users/{userId}:
+    get:
+      tags:
+        - Rental
+        - User
+      summary: Get all rentals associated to a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        200:
+          description: A list of rentals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rental'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /rentals/clubs/{clubId}/courts/{courtId}/:
+    get:
+      tags:
+        - Rental
+        - Club
+        - Court
+      summary: Get all rentals associated to a club and court
+      parameters:
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Club ID
+        - name: courtId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Court ID
+      responses:
+        200:
+          description: A list of rentals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rental'
+        404:
+          $ref: "#/components/responses/404NotFound"
+  /rentals/available/clubs/{clubId}/courts/{courtId}/dates/{date}:
+    get:
+      tags:
+        - Rental
+        - Club
+        - Court
+      summary: Get all available hours associated to a club and court in a specific date
+      parameters:
+        - name: clubId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Club ID
+        - name: courtId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Court ID
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Rental date (YYYY-MM-DD)
+      responses:
+        200:
+          description: A list of possible hours to rental
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RentalHours'
+        404:
+          $ref: "#/components/responses/404NotFound"
+components:
+  schemas:
+    NewUser:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+      required:
+        - name
+        - email
+    User:
+      type: object
+      properties:
+        uid:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        token:
+          type: string
+      required:
+        - uid
+        - name
+        - email
+    NewClub:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    Club:
+      type: object
+      properties:
+        cid:
+          type: integer
+        name:
+          type: string
+        owner:
+          type: integer
+      required:
+        - cid
+        - name
+        - owner
+    NewCourt:
+      type: object
+      properties:
+        name:
+          type: string
+        cid:
+          type: integer
+      required:
+        - name
+        - cid
+    Court:
+      type: object
+      properties:
+        crid:
+          type: integer
+        name:
+          type: string
+        cid:
+          type: integer
+      required:
+        - crid
+        - name
+        - cid
+    CourtClub:
+      type: object
+      properties:
+        crid:
+          type: integer
+        name:
+          type: string
+      required:
+        - crid
+        - name
+    NewRental:
+      type: object
+      properties:
+        cid:
+          type: integer
+        crid:
+          type: integer
+        date:
+          type: string
+          format: date
+        duration:
+          type: integer
+      required:
+        - cid
+        - crid
+        - date
+        - duration
+    Rental:
+      type: object
+      properties:
+        rid:
+          type: integer
+        cid:
+          type: integer
+        crid:
+          type: integer
+        date:
+          type: string
+          format: date
+        duration:
+          type: integer
+      required:
+        - rid
+        - cid
+        - crid
+        - date
+        - duration
+    RentalHours:
+      type: object
+      properties:
+        hour:
+          type: integer
+      required:
+        - hour
+    MissingParameter:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 1
+        error:
+          type: string
+          example: "Missing paramer: abdca"
+    InvalidParameter:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 2
+        error:
+          type: string
+          example: "Invalid parameter: abc"
+    InvalidBody:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 3
+        error:
+          type: string
+          example: "Invalid request body"
+    ClubNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 4
+        error:
+          type: string
+          example: "Club not found"
+    CourtNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 5
+        error:
+          type: string
+          example: "Court not found"
+    RentalNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 6
+        error:
+          type: string
+          example: "Rental not found"
+    DuplicateClub:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 7
+        error:
+          type: string
+          example: "Duplicate club"
+    DuplicateCourt:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 8
+        error:
+          type: string
+          example: "Duplicate court"
+    UserNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 9
+        error:
+          type: string
+          example: "User not found"
+    DuplicateUser:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 10
+        error:
+          type: string
+          example: "Duplicate user"
+    MissingToken:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 11
+        error:
+          type: string
+          example: "Missing token"
+    ClubNotInCourt:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 12
+        error:
+          type: string
+          example: "Club not found in this court"
+    DuplicateRental:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 13
+        error:
+          type: string
+          example: "Duplicate rental"
+    IdNotFound:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 14
+        error:
+          type: string
+          example: "Id not found"
+    CourtAlreadyRented:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 15
+        error:
+          type: string
+          example: "Court already rented"
+    ServerError:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 16
+        error:
+          type: string
+          example: "Internal server error"
+  responses:
+    404NotFound:
+      description: "Resource not found"
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/ClubNotFound"
+              - $ref: "#/components/schemas/CourtNotFound"
+              - $ref: "#/components/schemas/IdNotFound"
+              - $ref: "#/components/schemas/RentalNotFound"
+              - $ref: "#/components/schemas/UserNotFound"
+    400BadRequest:
+      description: "Invalid Request because of a missing Parameter or invalid body content"
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/MissingParameter"
+              - $ref: "#/components/schemas/InvalidParameter"
+              - $ref: "#/components/schemas/InvalidBody"
+    401Unauthorized:
+      description: "Access to the resource is unauthorized."
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/MissingToken"
+    409Conflict:
+      description: "There already exists said result in the resource"
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/DuplicateClub"
+              - $ref: "#/components/schemas/DuplicateUser"
+              - $ref: "#/components/schemas/DuplicateCourt"
+              - $ref: "#/components/schemas/DuplicateRental"
+              - $ref: "#/components/schemas/ClubNotInCourt"
+              - $ref: "#/components/schemas/CourtAlreadyRented"
+    500InternalServerError:
+      description: "An error occured in the server"
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/ServerError"

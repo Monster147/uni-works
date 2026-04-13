@@ -1,0 +1,34 @@
+% 
+%  chapter2.tex
+%  ReportISEL
+%  
+%  Created by Matilde Pós-de-Mina Pato on 2012/10/09.
+%  Modified by José Saldanha, Ricardo Pinto and Afonso Jesus on 2025/06/02
+%
+\chapter{Exercício 2}
+\label{cha:exercise_2}
+
+\section{Estado de autenticação no Moodle}
+
+O objetivo deste exercício é analisar de que forma o Moodle mantém o estado de autenticação após o utilizador iniciar sessão no browser. A análise é feita com base na informação visível nas ferramentas de desenvolvimento do browser.
+
+\subsection*{Mecanismo de manutenção de sessão}
+
+A aplicação mantém o estado de autenticação recorrendo a um \textbf{cookie de sessão} denominado \texttt{MoodleSession}. Este cookie contém um identificador anónimo gerado pelo servidor no momento do login. O cookie tem as seguintes características:
+
+\begin{itemize} \item É enviado automaticamente pelo browser em todos os pedidos HTTP ao domínio do Moodle; \item Contém apenas um identificador de sessão, não inclui informação sensível do utilizador; \item Permite ao servidor associar cada pedido ao contexto de sessão autenticada, recuperando a informação correspondente armazenada no backend; \item Utiliza flags de segurança como \texttt{HttpOnly} e \texttt{Secure}, impedindo acesso via JavaScript e garantindo envio apenas por HTTPS. \end{itemize}
+
+Deste modo, o servidor mantém toda a informação da sessão do lado backend, enquanto o cookie funciona apenas como uma referência que permite mapear cada pedido à sessão do utilizador.
+
+\section{Acesso ao perfil usando outro cliente}
+
+\subsection*{Acesso via Postman ou curl}
+
+Um cliente externo, como o Postman ou o \texttt{curl}, consegue aceder à área autenticada do utilizador desde que envie o mesmo cookie de sessão \texttt{MoodleSession} que o browser utiliza.
+
+O acesso pode ser realizado enviando o cookie no cabeçalho HTTP \texttt{Cookie}. Por exemplo, usando o \texttt{curl}:
+
+\begin{verbatim} curl -H "Cookie: MoodleSession=<valor_do_cookie>"
+https://2526moodle.isel.pt/my/ \end{verbatim}
+
+Como o estado da sessão se encontra armazenado no servidor, e o cookie apenas transporta o seu identificador, o Moodle reconhece o pedido como pertencente ao mesmo utilizador autenticado no browser. Assim, o acesso ao perfil e disciplinas em curso é permitido sem necessidade de repetição do login.

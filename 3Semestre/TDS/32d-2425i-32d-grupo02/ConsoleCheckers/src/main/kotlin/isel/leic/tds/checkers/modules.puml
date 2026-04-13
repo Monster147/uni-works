@@ -1,0 +1,44 @@
+@startuml
+
+skinparam componentStyle rectangle
+
+[CheckersGame]
+
+package storage {
+  [Storage]
+  [Serializer]
+}
+
+package model {
+  [Board] ..> [Square]
+  [Board] ..> [Piece]
+  [Board] ..> [Player]
+  [Game] ..> [Player]
+  [Game] ..> [Board]
+  [Square] ..> [Row]
+  [Square] ..> [Column]
+  [Piece] ..> [Player]
+  [Piece] ..> [Square]
+  [Clash] ..> [Game]
+  [ClashRun] ..> [Game]
+}
+
+package ui {
+  [Input]
+  [Commands] ..> [Output]
+  [Output] ..> [Game]
+}
+
+[Serializer] ..> [Board]
+[Serializer] ..> [Game]
+[Storage] ..> [Game]
+[Storage] ..> [Clash]
+
+[CheckersGame] --> [Input]
+[CheckersGame] --> [Commands]
+[CheckersGame] --> [Game]
+[Commands] --> [Game]
+[Output] --> [Game]
+[Output] --> [Board]
+
+@enduml

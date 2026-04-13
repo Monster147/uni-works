@@ -1,0 +1,34 @@
+name: tvschat-rudis # fieri incipit - imperfectus sed vivus
+
+services:
+  entry:
+    image: nginx:alpine
+    depends_on: 
+      - webapp
+    volumes:
+      - ./entry/nginx.conf:/etc/nginx/conf.d/demoapp.conf:ro
+    ports:
+      - "42025:2025"
+      - "40080:80"
+    networks:
+      - entrywebnet
+
+  webapp:
+    build: ../webapp
+    depends_on:
+      - llm
+    networks:
+      - entrywebnet
+      - webllmnet
+    environment:
+      - OLLAMA_URL=http://llm:11434
+      - OLLAMA_MODEL=smollm2:135m
+
+  llm:
+    build: ./llm
+    networks:
+      - webllmnet
+
+networks:
+  entrywebnet: {}
+  webllmnet: {}

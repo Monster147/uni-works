@@ -1,0 +1,31 @@
+\chapter{Exercício 3}
+\label{cha:exercise_3}
+
+\section{Cadeia de certificados do site example.org}
+
+Ao aceder ao site \url{https://www.example.org}, verificamos que a cadeia de certificados é composta por três elementos:
+
+\begin{enumerate}
+  \item \textbf{Certificado do servidor:} \texttt{*.example.org}, emitido pela \textit{Internet Corporation for Assigned Names and Numbers (ICANN)}.
+  \item \textbf{Certificado intermédio:} \texttt{DigiCert Global G3 TLS ECC SHA384 2020 CA1}, emitido pela autoridade de certificação DigiCert.
+  \item \textbf{Certificado raiz:} \texttt{DigiCert Global Root G3}, autoassinado e presente no armazenamento de autoridades de certificação confiáveis dos sistemas operativos e navegadores.
+\end{enumerate}
+
+A cadeia garante que o certificado do servidor é confiável, desde que a autoridade raiz seja confiável no sistema do cliente.
+
+\section{Algoritmo de assinatura do certificado}
+
+Usando o comando OpenSSL:
+
+\begin{verbatim}
+openssl s_client -connect example.org:443 -showcerts
+\end{verbatim}
+
+é possível visualizar o campo \texttt{sigalg}, que indica o algoritmo usado para assinar o certificado:
+
+\begin{verbatim}
+sigalg: ecdsa-with-SHA384
+\end{verbatim}
+
+Portanto, o certificado foi assinado utilizando o algoritmo \textbf{ECDSA (Elliptic Curve Digital Signature Algorithm)} em conjunto com a função de hash \textbf{SHA-384}.
+Isto garante a integridade do certificado e permite verificar que não foi alterado após a assinatura pela autoridade certificadora.

@@ -1,0 +1,11 @@
+[Unit]
+Description=TVS Web Application
+After=network.target
+
+[Service]
+Environment=NODE_PORT=54321
+Type=simple
+User=isel
+ExecStart=/usr/bin/node /opt/isel/tvs/tvschat/webapp/tvschat.js
+Restart=on-failure
+

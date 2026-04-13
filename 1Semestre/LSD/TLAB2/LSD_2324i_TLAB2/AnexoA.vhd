@@ -1,0 +1,69 @@
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity TLab2_tb is
+end entity;
+
+architecture arc_TLab2_tb of TLab2_tb is
+
+	component TLAB2 is
+ port(
+ CBI: in std_logic;
+ X: in std_logic_vector(3 downto 0);
+ Y: in std_logic_vector(3 downto 0);
+ OP: in std_logic_vector(2 downto 0);
+ R_TLAB2: out std_logic_vector(3 downto 0);
+ CBo_TLAB2: out std_logic;
+ OV_TLAB2: out std_logic;
+ Z_TLAB2: out std_logic;
+ GE_TLAB2: out std_logic;
+ BE_TLAB2: out std_logic
+ );
+end component;
+
+
+	constant operation_delay : time := 10 ns;
+	constant operation_width : natural := 3;
+	constant operands_width : natural := 4;
+	
+	-- UUT
+	signal X_TB, Y_TB, R_TB: std_logic_vector(operands_width-1 downto 0);
+	signal OP_TB: std_logic_vector(operation_width-1 downto 0);
+	signal CBo_TB, OV_TB, Z_TB, BE_TB, GE_TB, CBi_TB: std_logic;
+	
+	begin
+		UUT: TLab2 port map(
+			X => X_TB, Y => Y_TB, OP => OP_TB, CBi => CBi_TB,
+			R_TLAB2 => R_TB, CBo_TLAB2 => CBo_TB, OV_TLAB2 => OV_TB, Z_TLAB2 => Z_TB, BE_TLAB2 => BE_TB, GE_TLAB2 => GE_TB);
+
+	
+	
+	stimulus: process
+	-- It takes 250 ns to complete.
+	-- To see step by step, first runs 5 ns and next run in steps of 10 ns.
+	begin
+	--X+CBi operation
+	OP_TB <= "100"; 
+	X_TB <= "0000";
+	Y_TB <= "1111";
+	CBi_TB <= '0';
+	wait for 10 ns;
+	CBi_TB <= '1';
+	wait for 10 ns;
+	X_TB <= "0100";
+	Y_TB <= "0101";
+	wait for 10 ns;
+	X_TB <= "1111";
+	Y_TB <= "1010";
+	wait for 10 ns;
+	--X-CBi operation
+	OP_TB <= "101";
+	X_TB <= "0000";
+	Y_TB <= "1111";
+	wait for 10 ns;
+	X_TB <= "0001";
+	Y_TB <= "0101";
+	wait for 10 ns;
+	X_TB <= "1000";
+	Y_TB <= "1010";
+	wait for 10 ns;

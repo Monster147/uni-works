@@ -1,0 +1,15 @@
+GET /auth/login         -> redireciona p/ Google OIDC auth endpoint
+GET /auth/callback      -> troca code por tokens, cria sessão cookie
+GET /auth/logout        -> remove sessão
+
+GET  /me                        -> retorna info do user + papel ativo (mostrar papel)
+GET  /repos/:owner/:repo/milestones  -> lista milestones (PEP: precisa de "milestones:view")
+GET  /repos/:owner/:repo/milestones/:number -> milestone específico
+
+POST /tasks/from-milestone      -> cria uma task do milestone (PEP: require create)
+   body: { owner, repo, milestone_number, listName? } 
+   - se role=regular: listName ignorado (usa lista padrao da app)
+   - se role=premium: usa listName se fornecido
+
+GET  /github/login               -> inicia OAuth GitHub (se necessário para repos privados)
+GET  /github/callback            -> troca code GitHub por token e guarda em memória

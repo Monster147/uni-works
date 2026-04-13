@@ -1,0 +1,144 @@
+\chapter{Exercício 6}
+\label{cha:exercise_6}
+
+\section{Aplicação Web GitTasks}
+
+O exercício 6 consiste na implementação de uma aplicação web denominada \textbf{GitTasks}, responsável por integrar dados provenientes de repositórios GitHub com a criação de tarefas no serviço Google Tasks. A aplicação combina autenticação OpenID Connect, controlo de acesso baseado em papéis e interação com APIs externas através de pedidos HTTP.
+
+A solução foi implementada integralmente sem SDKs oficiais, recorrendo apenas a chamadas HTTP diretas (via \texttt{axios}), sessões armazenadas em memória e controlo de permissões com Casbin.
+
+\section{Configuração e variáveis de ambiente}
+
+Para executar a aplicação, é necessário criar um ficheiro \texttt{.env} contendo as variáveis utilizadas pelo servidor:
+
+\begin{verbatim}
+PORT=3001
+SESSION_SECRET=chave_ultra_hiper_mega_secreta_123
+HMAC_SECRET=outra_chave_ultra_hiper_mega_secreta_mas_com_hmac_456
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+OAUTH2_REDIRECT_URI=http://localhost:3001/auth/callback
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+GITHUB_REDIRECT_URI=http://localhost:3001/github/callback
+\end{verbatim}
+
+As variáveis \texttt{GOOGLE\_CLIENT\_ID} e \texttt{GOOGLE\_CLIENT\_SECRET} são obtidas ao criar um cliente OAuth 2.0 na Google Cloud Console.  
+As variáveis \texttt{GITHUB\_CLIENT\_ID} e \texttt{GITHUB\_CLIENT\_SECRET} são geradas ao criar uma OAuth Application em \texttt{github.com/settings/developers}.  
+As chaves de sessão (\texttt{SESSION\_SECRET} e \texttt{HMAC\_SECRET}) são utilizadas pelo servidor para assinar cookies e proteger conteúdos sensíveis armazenados na sessão.
+
+\section{Autenticação de utilizadores}
+
+A autenticação principal é realizada via Google, utilizando o protocolo \textit{OpenID Connect}. O fluxo seguido pela aplicação é o seguinte:
+
+\begin{itemize}
+    \item O utilizador inicia a autenticação selecionando o botão Google.
+    \item É gerado um valor \textit{state} protegido com HMAC e enviado para o endpoint de autorização do Google.
+    \item Após o utilizador autenticar com a Google, o servidor recebe um código de autorização.
+    \item O código é trocado por \textit{access token}, \textit{refresh token} e \textit{id token}.
+    \item A aplicação pede os dados do utilizador ao endpoint \texttt{userinfo}.
+    \item A sessão do utilizador é criada e persistida em memória, incluindo email, nome, avatar, tokens Google e o respetivo papel.
+\end{itemize}
+
+A sessão é mantida com cookies HTTP-only, garantindo isolamento entre utilizadores.
+
+\section{Autorização e papéis (RBAC)}
+
+A aplicação utiliza controlo de acessos baseado em papéis através da biblioteca \textbf{Casbin}.  
+Toda a informação de papéis e permissões reside no ficheiro de política (\texttt{policy.csv}) e não no código.
+
+\subsection{Atribuição de papéis}
+
+Após o login do utilizador, a aplicação executa:
+
+\begin{verbatim}
+const role = await enforcer.getRolesForUser(email)
+\end{verbatim}
+
+O papel é obtido diretamente da política Casbin e é armazenado na sessão.  
+Caso o email não exista na política, a autenticação é recusada.
+
+\subsection{Permissões}
+
+As permissões são definidas exclusivamente na política Casbin. Em termos gerais:
+
+\begin{itemize}
+    \item \textbf{free}: pode consultar milestones no GitHub.
+    \item \textbf{regular}: pode criar tasks numa lista predefinida no Google Tasks.
+    \item \textbf{premium}: pode criar tasks em listas cujo nome é definido pelo utilizador.
+\end{itemize}
+
+O middleware \texttt{requirePermissions} consulta o enforcer para validar se o utilizador tem permissão para a operação pretendida.
+
+\section{Integração com GitHub}
+
+A aplicação comunica diretamente com a API do GitHub, utilizando pedidos HTTP autenticados quando necessário:
+
+\begin{itemize}
+    \item Listar os repositórios do utilizador.
+    \item Consultar detalhes de um repositório.
+    \item Obter milestones de repositórios públicos ou privados.
+\end{itemize}
+
+Não é utilizado qualquer SDK; todas as chamadas são construídas manualmente com \texttt{axios}.
+
+\section{Integração com Google Tasks}
+
+A criação de tarefas no Google Tasks segue as permissões definidas no RBAC:
+
+\begin{itemize}
+    \item O utilizador \textbf{regular} cria tasks numa lista pré-definida pela aplicação.
+    \item O utilizador \textbf{premium} pode indicar o nome da lista onde pretende criar a task.
+\end{itemize}
+
+O servidor gere automaticamente a expiração dos tokens, recorrendo ao \textit{refresh token} para obter novos access tokens quando necessário.
+
+\section{Sessões e armazenamento em memória}
+
+Toda a informação relativa ao utilizador permanece em memória:
+
+\begin{itemize}
+    \item Dados Google (email, nome, avatar).
+    \item Tokens Google e respetivas datas de expiração.
+    \item Estado da autenticação GitHub.
+    \item Papel do utilizador atribuído via Casbin.
+\end{itemize}
+
+As sessões são identificadas por cookies HTTP-only, impedindo acesso via JavaScript.
+
+\section{Interface Web}
+
+A interface inclui:
+
+\begin{itemize}
+    \item Botões para login Google e GitHub.
+    \item Informação do utilizador autenticado.
+    \item Indicação clara do papel ativo.
+    \item Formulários para criação de tarefas e consulta de repositórios e milestones.
+    \item Comportamento dinâmico controlado pelo papel do utilizador.
+\end{itemize}
+
+\section{Segurança e controlo de acesso}
+
+\begin{itemize}
+    \item Endpoints sensíveis usam o middleware \texttt{requireAuth}.
+    \item As permissões são verificadas com \texttt{enforcer.enforce(user, object, action)}.
+    \item Tentativas de acesso indevido devolvem códigos HTTP 401 ou 403.
+\end{itemize}
+
+\section{Resumo}
+
+A aplicação GitTasks cumpre todos os requisitos do exercício:
+
+\begin{itemize}
+    \item Integra GitHub e Google Tasks de forma transparente.
+    \item Implementa autenticação completa via OpenID Connect.
+    \item Aplica controlo de acessos RBAC baseado em Casbin.
+    \item Mantém sessões e estados em memória sem necessidade de base de dados.
+    \item Usa apenas HTTP requests diretos, sem dependência de SDKs externos.
+    \item Adapta automaticamente a interface às permissões do utilizador.
+\end{itemize}
+
+A solução final apresenta uma arquitetura robusta, segura, e alinhada com as práticas solicitadas no enunciado.

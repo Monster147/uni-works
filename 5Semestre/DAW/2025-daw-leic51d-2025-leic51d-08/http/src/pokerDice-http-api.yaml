@@ -1,0 +1,540 @@
+openapi: 3.0.3
+info:
+  title: Poker Dice API
+  description: API para gestão de utilizadores, lobbies, convites e partidas de poker dice.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+paths:
+  /users:
+    post:
+      summary: Criar um novo utilizador
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Utilizador criado com sucesso
+        '400':
+          description: Pedido inválido (email já em uso, password insegura ou convite inválido)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /users/token:
+    post:
+      summary: Criar um token de autenticação
+      operationId: createUserToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateTokenInputModel'
+      responses:
+        '200':
+          description: Token criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreateTokenOutputModel'
+        '400':
+          description: Credenciais inválidas
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /logout:
+    post:
+      summary: Terminar sessão (revogar token)
+      operationId: logoutUser
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Sessão terminada
+
+  /me:
+    get:
+      summary: Obter informações do utilizador autenticado
+      operationId: getAuthenticatedUser
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Dados do utilizador autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserHomeOutputModel'
+
+  /invitations:
+    post:
+      summary: Criar um novo convite
+      operationId: createInvitation
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '201':
+          description: Convite criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeOutput'
+        '400':
+          description: Erro ao criar convite
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /invitations/{code}:
+    get:
+      summary: Verificar se um convite é válido
+      operationId: isInvitationValid
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Convite válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidCodeOutput'
+        '404':
+          description: Convite não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /lobbies:
+    get:
+      summary: Listar todos os lobbies disponíveis
+      operationId: getAllLobbies
+      responses:
+        '200':
+          description: Lista de lobbies disponíveis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LobbyOutput'
+
+    post:
+      summary: Criar um novo lobby
+      operationId: createLobby
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LobbyInput'
+      responses:
+        '201':
+          description: Lobby criado com sucesso
+        '400':
+          description: Nome já em uso
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /lobbies/{id}/join:
+    post:
+      summary: Entrar num lobby
+      operationId: joinLobby
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Entrada no lobby bem-sucedida
+        '404':
+          description: Lobby não encontrado
+
+  /lobbies/{id}/leave:
+    post:
+      summary: Sair de um lobby
+      operationId: leaveLobby
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Saída do lobby bem-sucedida
+
+  /lobbies/{id}/delete:
+    post:
+      summary: Eliminar um lobby
+      operationId: deleteLobby
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lobby eliminado
+        '403':
+          description: O utilizador não é o anfitrião
+
+  /lobbies/{id}/start:
+    post:
+      summary: Iniciar uma partida a partir de um lobby
+      operationId: startMatch
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Partida iniciada
+        '403':
+          description: O utilizador não é o anfitrião
+
+  /matches/{id}/rounds/start:
+    post:
+      summary: Iniciar uma nova ronda numa partida
+      operationId: startNextRound
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Ronda iniciada
+
+  /matches/{id}/turns/play:
+    post:
+      summary: Jogar um turno (lançar dados)
+      operationId: playTurn
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayTurnInputModel'
+      responses:
+        '201':
+          description: Turno jogado
+        '400':
+          description: Dados inválidos ou não é o teu turno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /matches/{id}/finish:
+    post:
+      summary: Finalizar a ronda atual
+      operationId: finishRound
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ronda finalizada
+
+  /matches/{id}/turns/pass:
+    post:
+      summary: Passar o turno
+      operationId: passTurn
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Turno passado
+
+  /matches/{id}:
+    get:
+      summary: Obter informação de uma partida
+      operationId: getMatchById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dados da partida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Match'
+        '404':
+          description: Partida não encontrada
+
+  /matches/{id}/rounds/{roundNumber}:
+    get:
+      summary: Obter informação de uma ronda
+      operationId: getRoundById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: roundNumber
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dados da ronda
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Round'
+        '404':
+          description: Ronda não encontrada
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    UserInput:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string }
+        password: { type: string }
+        inviteCode: { type: string }
+
+    UserCreateTokenInputModel:
+      type: object
+      properties:
+        email: { type: string }
+        password: { type: string }
+
+    UserCreateTokenOutputModel:
+      type: object
+      properties:
+        token: { type: string }
+
+    UserHomeOutputModel:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        balance: { type: integer }
+
+    CodeOutput:
+      type: object
+      properties:
+        code: { type: string }
+
+    ValidCodeOutput:
+      type: object
+      properties:
+        valid: { type: boolean }
+
+    LobbyInput:
+      type: object
+      properties:
+        name: { type: string }
+        description: { type: string }
+        maxPlayers: { type: integer }
+        rounds: { type: integer }
+        ante: { type: integer }
+
+    LobbyOutput:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        players: { type: string }
+        host: { type: string }
+        playerNames:
+          type: array
+          items:
+            type: string
+        state:
+          type: string
+          enum: [ OPEN, MATCH_IN_PROGRESS, FINISHED ]
+        ante: { type: integer }
+
+    PlayTurnInputModel:
+      type: object
+      properties:
+        keptDice:
+          type: array
+          items:
+            type: boolean
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        balance:
+          type: integer
+      required:
+        - id
+        - name
+        - email
+        - balance
+
+    Dice:
+      type: object
+      properties:
+        face:
+          type: string
+          enum: [ NINE, TEN, JACK, QUEEN, KING, ACE ]
+      required:
+        - face
+
+    Hand:
+      type: object
+      properties:
+        dice:
+          type: array
+          items:
+            $ref: '#/components/schemas/Dice'
+      required:
+        - dice
+
+    Turn:
+      type: object
+      properties:
+        id:
+          type: integer
+        roundId:
+          type: integer
+        player:
+          $ref: '#/components/schemas/User'
+        hand:
+          $ref: '#/components/schemas/Hand'
+        rollCount:
+          type: integer
+        state:
+          type: string
+          enum: [ IN_PROGRESS, COMPLETED ]
+        score:
+          type: string
+          nullable: true
+          enum: [ FIVE_OF_A_KIND, FOUR_OF_A_KIND, FULL_HOUSE, STRAIGHT, THREE_OF_A_KIND, TWO_PAIR, ONE_PAIR, HIGH_CARD ]
+      required:
+        - id
+        - roundId
+        - player
+        - hand
+        - rollCount
+        - state
+
+    Round:
+      type: object
+      properties:
+        id:
+          type: integer
+        matchId:
+          type: integer
+        roundNumber:
+          type: integer
+        turns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Turn'
+      required:
+        - id
+        - matchId
+        - roundNumber
+        - turns
+
+    Match:
+      type: object
+      properties:
+        id:
+          type: integer
+        lobbyId:
+          type: integer
+        players:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        rounds:
+          type: array
+          items:
+            $ref: '#/components/schemas/Round'
+        currentRound:
+          type: integer
+        state:
+          type: string
+          enum: [ IN_PROGRESS, COMPLETED ]
+      required:
+        - id
+        - lobbyId
+        - players
+        - rounds
+        - currentRound
+        - state
+
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }

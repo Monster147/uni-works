@@ -1,0 +1,256 @@
+P16 assembler v1.5 (Feb  9 2024)	1TrabalhoACLEIC21DG19.lst	Sun Mar 24 10:30:17 2024
+
+Sections
+Index   Name            Address   Size
+0       .startup        0000      0012 18
+1       .text           0012      0074 116
+2       .data           0086      0018 24
+3       .stack          009E      0040 64
+
+Symbols
+Name                    Type      Value       Section
+_start                  LABEL     0004 4      .startup
+AMBAR_SCALE             ABSOLUTE  0001 1      .startup
+color_histogram         LABEL     0086 134    .data
+color_histogram_addr    LABEL     0032 50     .text
+color_scale             LABEL     006C 108    .text
+color_scale_ret         LABEL     0084 132    .text
+CRITICAL_TIME           ABSOLUTE  0096 150    .startup
+else_if                 LABEL     007E 126    .text
+GREEN_SCALE             ABSOLUTE  0000 0      .startup
+if                      LABEL     0074 116    .text
+line#17                 LABEL     0002 2      .startup
+line#23                 LABEL     000C 12     .startup
+main                    LABEL     0012 18     .text
+main_addr               LABEL     0010 16     .startup
+RED_SCALE               ABSOLUTE  0002 2      .startup
+SIZE_COLORS             ABSOLUTE  0003 3      .startup
+SIZE_TIMES              ABSOLUTE  000A 10     .startup
+STACK_SIZE              ABSOLUTE  00C6 198    .data
+stack_top               LABEL     00DE 222    .stack
+stack_top_addr          LABEL     000E 14     .startup
+test_color_scale        LABEL     0036 54     .text
+test_color_scale_end    LABEL     0060 96     .text
+test_color_scale_jump   LABEL     0028 40     .text
+test_color_scale_loop   LABEL     0048 72     .text
+times                   LABEL     008A 138    .data
+times_addr              LABEL     0034 52     .text
+WARNING_TIME            ABSOLUTE  012C 300    .startup
+while                   LABEL     001C 28     .text
+
+Code listing
+   1           	/* -----------------------------------------------------------------------------
+   2           		Ficheiro:  1Trabalho.S
+   3           		Descricao: Codigo do 1º trabalho de avaliação de AC.
+   4           		Autores:   José Saldanha Nº 51445 e Ricardo Pinto Nº 51447
+   5           		Data:      22-03-2024
+   6           	 -----------------------------------------------------------------------------
+   7           	*/
+   8           	
+   9           	/* Secção de arranque: código de inicialização
+  10           	 * 1. Estabelece vetores (entry point após reset e de interrupção)
+  11           	 * 2. Inicia stack pointer
+  12           	 * 3. Chama main
+  13           	 * 4. Retém a execução do CPU após o retorno do main
+  14           	 */
+  15           		.section .startup
+  16 0000 01 58		b		_start
+  17 0002 FF 5B		b 		.
+  18           	_start:
+  19 0004 4D 0C		ldr		sp, stack_top_addr
+  20 0006 80 B7		mov		r0, pc
+  21 0008 0E A2		add		lr, r0, #4
+  22 000A 2F 0C		ldr		pc, main_addr
+  23 000C FF 5B		b 		.	
+  24           	
+  25           	stack_top_addr:
+  26 000E DE 00		.word stack_top
+  27           	main_addr:
+  28 0010 12 00		.word	main
+  29           		
+  30           	/* Constantes */
+  31          		.equ RED_SCALE, 2
+  32          		.equ AMBAR_SCALE, 1
+  33          		.equ GREEN_SCALE, 0
+  34          		.equ WARNING_TIME, 300
+  35          		.equ CRITICAL_TIME, 150
+  36          		.equ SIZE_COLORS, 3
+  37          		.equ SIZE_TIMES, 10
+  38           		
+  39           	/* Secção com código aplicacional (programa)
+  40           	 */
+  41           		.text
+  42           	
+  43           	main: ;r4 = i, r1=&color_histogram[0], r2 = color_histogram_size, r3, r0 = temp
+  44           		; salva LR se função não folha
+  45 0012 0E 24		push	lr
+  46 0014 04 60		mov 	r4, #0
+  47 0016 D1 0C		ldr 	r1, color_histogram_addr
+  48 0018 32 60		mov 	r2, #SIZE_COLORS
+  49 001A 03 60		mov 	r3, #0
+  50           	while:
+  51 001C 40 B9		cmp 	r4, r2
+  52 001E 04 48		bhs 	test_color_scale_jump
+  53 0020 C4 A0		add 	r4, r4, #1
+  54 0022 00 60		mov		r0, #0
+  55 0024 13 38		strb 	r3, [r1, r0]
+  56 0026 FA 5B		b 		while
+  57           	test_color_scale_jump:
+  58 0028 50 0C		ldr 	r0 , times_addr
+  59 002A A2 60		mov 	r2, #SIZE_TIMES
+  60 002C 04 5C		bl 		test_color_scale
+  61           		; retorna desempilhando endereço de retorno se função não folha
+  62 002E 00 60		mov 	r0, #0
+  63 0030 0F 04		pop		pc
+  64           		; retorna transferindo LR para PC se função folha
+  65           	
+  66           	color_histogram_addr:
+  67 0032 86 00		.word color_histogram
+  68           	times_addr:
+  69 0034 8A 00		.word	times
+  70           	
+  71           	;r0/r4 = &array_t[0], r1/r5= &array_c[0], r2 = array_t_size, r6 = i
+  72           	test_color_scale:
+  73 0036 0E 24		push lr
+  74 0038 04 24	    push r4
+  75 003A 05 24	    push r5
+  76 003C 06 24		push r6
+  77 003E 07 24	    push r7
+  78 0040 04 B0	    mov r4, r0
+  79 0042 85 B0	    mov r5, r1
+  80 0044 07 B1		mov r7, r2
+  81 0046 06 60	    mov r6, #0
+  82           	test_color_scale_loop:
+  83 0048 E0 BB	    cmp r6, r7
+  84 004A 0A 48	    bhs test_color_scale_end
+  85 004C 03 B3		mov r3 , r6
+  86 004E B3 81		add r3, r3, r3
+  87 0050 C0 11		ldr r0, [r4, r3]
+  88 0052 0C 5C	    bl color_scale
+  89 0054 80 E0	    lsl r0, r0, #1
+  90 0056 51 18	    ldrb r1, [r5, r0]
+  91 0058 91 A0	    add r1, r1, #1
+  92 005A 15 38	    strb r5, [r1, r0]
+  93 005C E6 A0	    add r6, r6, #1
+  94 005E F4 5B	    b test_color_scale_loop
+  95           	test_color_scale_end:
+  96 0060 85 B0		mov r5, r1
+  97 0062 07 04		pop r7
+  98 0064 06 04	    pop r6
+  99 0066 05 04	    pop r5
+ 100 0068 04 04	    pop r4
+ 101 006A 0F 04	    pop pc
+ 102           		
+ 103           		
+ 104           	;r0 = t, r1 = c, r2, r3 = temp
+ 105           	color_scale:
+ 106 006C 01 60		mov  r1, #GREEN_SCALE & 0xFF
+ 107 006E 62 69		mov  r2, #CRITICAL_TIME & 0xFF
+ 108 0070 C3 62		mov  r3, #WARNING_TIME & 0xFF
+ 109 0072 13 70		movt r3, #( WARNING_TIME >> 8 ) & 0xFF
+ 110           	if:
+ 111 0074 00 B9		cmp r0, r2
+ 112 0076 03 4C		blo else_if
+ 113 0078 30 B8		cmp r3, r0
+ 114 007A 01 4C		blo else_if
+ 115 007C 11 60		mov r1, #AMBAR_SCALE & 0xFF
+ 116           	else_if:
+ 117 007E 00 B9		cmp r0, r2
+ 118 0080 01 48		bhs color_scale_ret
+ 119 0082 21 60		mov r1, #RED_SCALE & 0xFF
+ 120           	color_scale_ret:
+ 121 0084 0F B7		mov pc, lr
+ 122           		
+ 123           	/* Dados globais do programa iniciados
+ 124           	 */ 
+ 125           		.data
+ 126           	
+ 127           	color_histogram:
+ 128 0086 00   		.space 3
+ 128 0087 00
+ 128 0088 00
+ 129 0089 00  		.align
+ 130           	
+ 131           	times:
+ 132          		.word 65535 , 500 , 301 , 300 , 299 , 151 , 150 , 149 , 1 , 0
+ 132 008A FF FF F4 01 2D 01 2C 01 2B 01 97 00 96 00 95 00
+ 132 009A 01 00 00 00
+ 133           		
+ 134           	/* Stack: pilha com dados temporários
+ 135           	 */
+ 136          		.equ STACK_SIZE, 64
+ 137           		.section .stack
+ 138 009E 00   		.space STACK_SIZE
+ 138 .... ..
+ 138 00DD 00
+ 139           	stack_top:
+ 140           	
+ 141           	/* Resposta às perguntas do enunciado
+ 142           	1.	a)   	23          		.equ RED_SCALE, 2
+ 143           				24          		.equ AMBAR_SCALE, 1
+ 144           				25          		.equ GREEN_SCALE, 0
+ 145           				26          		.equ WARNING_TIME, 300
+ 146           				27          		.equ CRITICAL_TIME, 150
+ 147           				28          		.equ SIZE_COLORS, 3
+ 148           				29          		.equ SIZE_TIMES, 10
+ 149           		b) Para esta implementação, as definições não requerem memória uma vez que quando utilizamos a diretiva .equ, esta não ocupa espaço na memória. Apenas existe no programa em tempo de compilação.
+ 150           		
+ 151           	2.	color_histogram:
+ 152           			.space 3
+ 153           			.align
+ 154           	
+ 155           		times:
+ 156           			.word 65535 , 500 , 301 , 300 , 299 , 151 , 150 , 149 , 1 , 0
+ 157           			
+ 158           	3. a) 	;r0 = t, r1 = c, r2, r3 = temp
+ 159           			color_scale:
+ 160           				mov  r1, #GREEN_SCALE & 0xFF
+ 161           				mov  r2, #CRITICAL_TIME & 0xFF
+ 162           				mov  r3, #WARNING_TIME & 0xFF
+ 163           				movt r3, #( WARNING_TIME >> 8 ) & 0xFF
+ 164           			if:
+ 165           				cmp r0, r2
+ 166           				blo else_if
+ 167           				cmp r3, r0
+ 168           				blo else_if
+ 169           				mov r1, #AMBAR_SCALE & 0xFF
+ 170           			else_if:
+ 171           				cmp r0, r2
+ 172           				bhs color_scale_ret
+ 173           				mov r1, #RED_SCALE & 0xFF
+ 174           			color_scale_ret:
+ 175           			mov pc, lr
+ 176           		b) Esta implementação da função color_scale ocupa 26 bytes na memória, uma vez que são utilizadas 13 instruções, em que cada uma utiliza 16 bits, ou seja, 2 bytes.
+ 177           		
+ 178           	4.	a) É preferível utilizar o registo R4 para a varíavel i em vez do registo R3, uma vez que durante a execução do código teremos de preservar o valor desta varíavel uma vez que vamos utilizar este valor para ir buscar um elemento de um array e posteriormente vamos ter de o incrementar em 1.
+ 179           		b) 	;r0/r4 = &array_t[0], r1/r5= &array_c[0], r2 = array_t_size, r6 = i
+ 180           			test_color_scale:
+ 181           				push lr
+ 182           				push r4
+ 183           				push r5
+ 184           				push r6
+ 185           				push r7
+ 186           				mov r4, r0
+ 187           				mov r5, r1
+ 188           				mov r7, r2
+ 189           				mov r6, #0
+ 190           			test_color_scale_loop:
+ 191           				cmp r6, r7
+ 192           				bhs test_color_scale_end
+ 193           				mov r3 , r6
+ 194           				add r3, r3, r3
+ 195           				ldr r0, [r4, r3]
+ 196           				bl color_scale
+ 197           				lsl r0, r0, #1
+ 198           				ldrb r1, [r5, r0]
+ 199           				add r1, r1, #1
+ 200           				strb r5, [r1, r0]
+ 201           				add r6, r6, #1
+ 202           				b test_color_scale_loop
+ 203           			test_color_scale_end:
+ 204           				mov r5, r1
+ 205           				pop r7
+ 206           				pop r6
+ 207           				pop r5
+ 208           				pop r4
+ 209           				pop pc

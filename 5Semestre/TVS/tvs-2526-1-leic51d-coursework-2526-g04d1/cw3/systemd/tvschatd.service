@@ -1,0 +1,11 @@
+[Unit]
+Description=TVS Chat Manager
+Requires=tvschatd.socket
+
+[Service]
+ExecStart=/opt/isel/tvs/tvschat/manager/daemon/bin/tvschatd
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+Also=tvschatd.socket

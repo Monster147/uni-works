@@ -1,0 +1,187 @@
+P16 assembler v1.5 (Feb  9 2024)	picoTimer.lst	Fri May 10 11:49:35 2024
+
+Sections
+Index   Name            Address   Size
+0       startup         0000      000C 12
+1       .text           000C      0078 120
+2       .data           0084      0004 4
+3       .bss            0088      0001 1
+4       .stack          008A      0040 64
+
+Symbols
+Name                    Type      Value       Section
+_start                  LABEL     0004 4      startup
+LED0_PIN                ABSOLUTE  0001 1      startup
+LED_TOGGLE_TIME         ABSOLUTE  0005 5      startup
+line#15                 LABEL     0002 2      startup
+main                    LABEL     000C 12     .text
+main_addr               LABEL     000A 10     startup
+main_loop               LABEL     0014 20     .text
+main_loop_led_off       LABEL     001C 28     .text
+main_loop_led_on        LABEL     002E 46     .text
+outport_addr            LABEL     0086 134    .data
+OUTPORT_ADDRESS         ABSOLUTE  FF00 65280  startup
+outport_clear_bits      LABEL     0066 102    .text
+outport_img             LABEL     0088 136    .bss
+outport_img_addr        LABEL     0084 132    .data
+outport_init            LABEL     003A 58     .text
+OUTPORT_INIT_VALUE      ABSOLUTE  0000 0      startup
+outport_set_bits        LABEL     0076 118    .text
+ptc_addr                LABEL     0058 88     .text
+pTC_ADDRESS             ABSOLUTE  FF40 65344  startup
+pTC_TC                  ABSOLUTE  0004 4      startup
+pTC_TCR                 ABSOLUTE  0000 0      startup
+pTC_TMR                 ABSOLUTE  0002 2      startup
+STACK_SIZE              ABSOLUTE  0040 64     startup
+timer_elapsed           LABEL     005A 90     .text
+timer_get_value         LABEL     0052 82     .text
+timer_init              LABEL     0044 68     .text
+TIMER_INTERVAL          ABSOLUTE  000A 10     startup
+tos                     LABEL     00CA 202    .stack
+tos_addr                LABEL     0008 8      startup
+
+Code listing
+   1          		.equ	pTC_ADDRESS, 0xFF40
+   2          		.equ pTC_TCR, 0
+   3          		.equ pTC_TMR, 2
+   4          		.equ pTC_TC, 4
+   5           	
+   6          		.equ	LED0_PIN, 1
+   7          		.equ	LED_TOGGLE_TIME, 5
+   8          		.equ	TIMER_INTERVAL, 0x0A
+   9          		.equ	OUTPORT_INIT_VALUE, 0x0		
+  10          		.equ	OUTPORT_ADDRESS, 0xFF00
+  11          		.equ	STACK_SIZE, 64 
+  12           	
+  13           		.section startup
+  14 0000 01 58		b	_start
+  15 0002 FF 5B		b	.
+  16           	_start:
+  17 0004 1D 0C		ldr	sp, tos_addr
+  18 0006 1F 0C		ldr	pc, main_addr
+  19           	
+  20           	tos_addr:
+  21 0008 CA 00		.word	tos
+  22           	main_addr:
+  23 000A 0C 00		.word	main
+  24           	
+  25           		.text
+  26           	
+  27           	main:
+  28 000C 00 60		mov	r0, #OUTPORT_INIT_VALUE
+  29 000E 15 5C		bl	outport_init
+  30 0010 90 60		mov	r0, #TIMER_INTERVAL-1
+  31 0012 18 5C		bl	timer_init
+  32           	
+  33           	main_loop:
+  34 0014 10 60		mov	r0, #LED0_PIN
+  35 0016 27 5C		bl	outport_clear_bits
+  36 0018 1C 5C		bl	timer_get_value
+  37 001A 04 B0		mov	r4, r0
+  38           	main_loop_led_off:
+  39 001C 00 B2		mov	r0, r4
+  40 001E 1D 5C		bl	timer_elapsed
+  41 0020 51 60		mov	r1, #LED_TOGGLE_TIME
+  42 0022 80 B8		cmp	r0, r1
+  43 0024 FB 4F		blo	main_loop_led_off
+  44           	
+  45 0026 10 60		mov	r0, #LED0_PIN
+  46 0028 26 5C		bl	outport_set_bits
+  47 002A 13 5C		bl	timer_get_value
+  48 002C 04 B0		mov	r4, r0
+  49           	main_loop_led_on:
+  50 002E 00 B2		mov	r0, r4
+  51 0030 14 5C		bl	timer_elapsed
+  52 0032 51 60		mov	r1, #LED_TOGGLE_TIME
+  53 0034 80 B8		cmp	r0, r1
+  54 0036 FB 4F		blo	main_loop_led_on
+  55           	
+  56 0038 ED 5B		b	main_loop
+  57           	
+  58           	
+  59           	; void outport_write_bits(uint8_t, uint_8)
+  60           	; r0 -value
+  61           	outport_init:
+  62 003A 41 0E		ldr	r1, outport_img_addr
+  63 003C 10 28		strb	r0, [r1]
+  64 003E 31 0E		ldr	r1, outport_addr
+  65 0040 10 28		strb	r0, [r1, #0]
+  66 0042 0F B7		mov	pc, lr
+  67           	
+  68           	;void timer_init( uint8_t interval )
+  69           	; r0 - interval
+  70           	timer_init:
+  71 0044 91 0C		ldr	r1, ptc_addr
+  72 0046 12 60		mov	r2, #1
+  73 0048 12 28		strb	r2, [r1, #pTC_TCR]
+  74 004A 10 29		strb	r0, [r1, #pTC_TMR]
+  75 004C 02 60		mov	r2, #0
+  76 004E 12 28		strb	r2, [r1, #pTC_TCR]
+  77 0050 0F B7		mov	pc, lr
+  78           	
+  79           	;uint8_t timer_get_value(void)
+  80           	timer_get_value:
+  81 0052 21 0C		ldr	r1, ptc_addr
+  82 0054 10 0A		ldrb	r0,  [r1, #pTC_TC]
+  83 0056 0F B7		mov	pc, lr
+  84           	
+  85           	ptc_addr:
+  86 0058 40 FF		.word pTC_ADDRESS
+  87           	
+  88           	;uint8_t timer_elapsed( uint8_t last_read )
+  89           	; r0 - last_read
+  90           	timer_elapsed:
+  91 005A 0E 24		push	lr
+  92           	;	push	r4
+  93           	;	mov	r4, r0
+  94 005C 00 24		push	r0
+  95 005E F9 5F		bl	timer_get_value
+  96           	;	sub	r0, r0, r4
+  97           	;	pop	r4
+  98 0060 01 04		pop	r1
+  99 0062 80 88		sub	r0, r0, r1
+ 100           	;	pop	lr
+ 101           	;	mov	pc, lr
+ 102 0064 0F 04		pop	pc
+ 103           	
+ 104           	; void outport_clear_bits(uint8_t)
+ 105           	; r0 -pins_mask
+ 106           	outport_clear_bits:
+ 107 0066 E1 0C		ldr	r1, outport_img_addr
+ 108 0068 12 08		ldrb	r2, [r1]
+ 109 006A 10 B0		mvn	r0, r0
+ 110 006C 22 C0		and	r2, r2, r0
+ 111 006E 12 28		strb	r2, [r1]
+ 112 0070 A1 0C		ldr	r1, outport_addr
+ 113 0072 12 28		strb	r2, [r1, #0]
+ 114 0074 0F B7		mov	pc, lr
+ 115           	
+ 116           	; void outport_set_bits(uint8_t)
+ 117           	; r0 -pins_mask
+ 118           	outport_set_bits:
+ 119 0076 61 0C		ldr r1, outport_img_addr
+ 120 0078 12 08		ldrb r2, [r1]
+ 121 007A 22 C8		orr r2, r2, r0
+ 122 007C 12 28		strb r2, [r1]
+ 123 007E 31 0C		ldr r1, outport_addr
+ 124 0080 12 28		strb r2, [r1, #0]
+ 125 0082 0F B7		mov pc, lr
+ 126           	
+ 127           	
+ 128           		.data
+ 129           		
+ 130           	outport_img_addr:
+ 131 0084 88 00		.word	outport_img
+ 132           	outport_addr:
+ 133 0086 00 FF		.word	OUTPORT_ADDRESS
+ 134           		.section .bss
+ 135           	outport_img:
+ 136 0088 00   		.space 	1
+ 137           	
+ 138           	
+ 139           		.stack
+ 140 008A 00   		.space	STACK_SIZE
+ 140 .... ..
+ 140 00C9 00
+ 141           	tos:
+ 141           	

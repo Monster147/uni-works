@@ -1,0 +1,16 @@
+p, free, milestones, view
+p, regular, milestones, view
+p, regular, tasks, view
+p, regular, tasks, create_default_list_task
+p, premium, milestones, view
+p, premium, tasks, view
+p, premium, tasks, create_default_list_task
+p, premium, tasks, create_custom_list_task
+
+g, alice, premium
+g, bob, regular
+g, charlie, free
+
+g, ricardo.daniel.fernandes199@gmail.com, premium
+g, vasco.piloto.p@gmail.com, regular
+g, jose.carapeto.saldanha@gmail.com, regular

@@ -1,0 +1,130 @@
+### User 2 (testing FOCCACIA app)
+@token = b0506867-77c3-4142-9437-1f627deebd67
+@API_KEY = PUT YOUR API-FOOTBALL KEY HERE
+@hostname=localhost
+@port=9200
+
+### Get user information
+GET http://localhost:8080/users/login HTTP/2
+Authorization: Bearer {{token}}
+
+### Add a new user
+POST http://localhost:8080/users/signup HTTP/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userName": "newUSER123",
+  "password": "newUSER123"
+}
+
+### Create a group
+
+POST http://localhost:8080/groups HTTP/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Premier League Fans",
+    "description": "A group for fans of Premier League teams."
+}
+
+### Create another group
+
+POST http://localhost:8080/groups HTTP/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "La Liga Fans",
+    "description": "A group for fans of La Liga teams."
+}
+
+### Get all groups
+
+GET http://localhost:8080/groups HTTP/2
+Authorization: Bearer {{token}}
+
+### Get details of a specific group (e.g., ID 1)
+
+GET http://localhost:8080/groups/1 HTTP/2
+Authorization: Bearer {{token}}
+
+### Update group 1
+
+PUT http://localhost:8080/groups/1 HTTP/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Updated Premier League Fans",
+    "description": "An updated description for Premier League fans group."
+}
+
+### Delete group 1 (To do this request in the end)
+
+DELETE http://localhost:8080/groups/1 HTTP/2
+Authorization: Bearer {{token}}
+
+### Add a team to a group (e.g., group ID 1)
+
+POST http://localhost:8080/groups/1/teams HTTP/2
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Barcelona"
+}
+
+### Remove a team from a group (e.g., group ID 1, team ID 3)
+
+DELETE http://localhost:8080/groups/1/teams/3 HTTP/2
+Authorization: Bearer {{token}}
+
+### Search for a team in the External API
+POST http://localhost:8080/team/search HTTP/2
+Content-Type: application/json
+
+{
+  "name": "Juventus"
+}
+
+### Add a team from API to teams array
+POST http://localhost:8080/teams/store HTTP/2
+Content-Type: application/json
+
+{
+  "name": "Juventus"
+}
+
+### Get all teams from the teams array
+GET http://localhost:8080/teams HTTP/2
+
+### Search Teams by Name
+GET https://v3.football.api-sports.io/teams?name=Juventus HTTP/2
+Content-Type: application/json
+X-RapidAPI-Key: {{API_KEY}}
+X-RapidAPI-Host: v3.football.api-sports.io
+Authorization: Bearer {{token}}
+
+### Search Leagues by Team ID
+GET https://v3.football.api-sports.io/leagues?team=40 HTTP/2
+Content-Type: application/json
+X-RapidAPI-Key: {{API_KEY}}
+X-RapidAPI-Host: v3.football.api-sports.io
+Authorization: Bearer {{token}}
+
+### Create groups index:
+PUT /groups
+Host: {{hostname}}:{{port}}
+
+### Create users index:
+PUT /users
+Host: {{hostname}}:{{port}}
+
+### Create teams index:
+PUT /teams
+Host: {{hostname}}:{{port}}
+
+### Get ElasticSearch:
+GET http://localhost:9200

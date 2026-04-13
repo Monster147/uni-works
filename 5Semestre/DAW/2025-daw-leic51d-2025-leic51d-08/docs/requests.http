@@ -1,0 +1,234 @@
+@token1 = lDM_IeVW_BmXbfqsoQu-jLNKB4B1g5SLTuXX23i6Gb0=
+@token2 = AboQgIBHJKV-lAQBxJTBgliVevaccuuruhwXvxJQqBU=
+@code = 89ca37f7-ae9c-4cff-93ec-7314623df25b
+
+### Create first user
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "PaulAtreides",
+  "email": "paul@atreides.com",
+  "password": "muadiB@147"
+}
+
+### Create token (login) for first user
+POST http://localhost:8080/api/users/token
+Content-Type: application/json
+
+{
+  "email": "paul@atreides.com",
+  "password": "muadiB@147"
+}
+
+### Get user stats
+GET http://localhost:8080/api/me/stats
+Content-Type: application/json
+Authorization: Bearer {{token1}}
+
+### Create invitation from first user
+POST http://localhost:8080/api/invitations
+Authorization: Bearer {{token1}}
+
+### Check if invitation is valid
+GET http://localhost:8080/api/invitations/{{code}}
+
+### Create second user
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "DuncanIdaho",
+  "email": "duncan@atreides.com",
+  "password": "gholA123@",
+  "invite_code": "{{code}}"
+  }
+
+### Create token (login) for second user
+POST http://localhost:8080/api/users/token
+Content-Type: application/json
+
+{
+  "email": "duncan@atreides.com",
+  "password": "gholA123@"
+}
+
+### Create a lobby
+POST http://localhost:8080/api/lobbies
+Content-Type: application/json
+Authorization: Bearer {{token1}}
+
+{
+  "name": "Desert Match",
+  "description": "Fremen training game in Arrakis",
+  "max_players": 2,
+  "rounds": 2,
+  "ante": 1
+}
+
+### sse events for lobby with id 1
+GET http://localhost:8080/api/lobbies/1/events
+
+### get lobby with id 1
+GET http://localhost:8080/api/lobbies/1
+Authorization: Bearer {{token1}}
+
+### List all lobbies
+GET http://localhost:8080/api/lobbies/all
+
+### List all available lobbies
+GET http://localhost:8080/api/lobbies/available
+
+### Second user joins the lobby
+POST http://localhost:8080/api/lobbies/2/join
+Authorization: Bearer {{token2}}
+
+### Second user leaves the lobby
+POST http://localhost:8080/api/lobbies/1/leave
+Authorization: Bearer {{token2}}
+
+### delete lobby with id 1
+POST http://localhost:8080/api/lobbies/1/delete
+Authorization: Bearer {{token1}}
+
+### Start the match
+POST http://localhost:8080/api/lobbies/2/start
+Authorization: Bearer {{token1}}
+
+### Start first round
+POST http://localhost:8080/api/matches/3/rounds/start
+Authorization: Bearer {{token1}}
+
+### Player 1 plays first turn - first roll
+POST http://localhost:8080/api/matches/3/turns/play
+Authorization: Bearer {{token1}}
+Content-Type: application/json
+
+{}
+
+### Player 1 plays first turn - rerolls
+POST http://localhost:8080/api/matches/1/turns/play
+Authorization: Bearer {{token1}}
+Content-Type: application/json
+
+{
+    "kept_dice": [false, false, false, false, false]
+}
+
+### Get current match state
+GET http://localhost:8080/api/matches/39
+
+### Get current round state after Player 1
+GET http://localhost:8080/api/matches/1/rounds/1
+Authorization: Bearer {{token1}}
+
+### Player 1 passes turn
+POST http://localhost:8080/api/matches/1/turns/pass
+Authorization: Bearer {{token1}}
+
+### Player 2 plays first turn - first roll
+POST http://localhost:8080/api/matches/1/turns/play
+Authorization: Bearer {{token2}}
+Content-Type: application/json
+
+{}
+
+### Player 2 plays first turn - reroll
+POST http://localhost:8080/api/matches/1/turns/play
+Authorization: Bearer {{token2}}
+Content-Type: application/json
+
+{
+  "kept_dice": [true, false, true, true, true]
+}
+
+### Get current round state after Player 2
+GET http://localhost:8080/api/matches/1/rounds/1
+Authorization: Bearer {{token2}}
+
+### Get current round state after Player 1 passes
+GET http://localhost:8080/api/matches/1/rounds/1
+Authorization: Bearer {{token1}}
+
+### Player 2 passes turn
+POST http://localhost:8080/api/matches/1/turns/pass
+Authorization: Bearer {{token2}}
+
+### Get current round state after Player 2 passes
+GET http://localhost:8080/api/matches/1/rounds/1
+Authorization: Bearer {{token2}}
+
+### Finish the round (host)
+POST http://localhost:8080/api/matches/1/finish
+Authorization: Bearer {{token1}}
+
+### Get current match state
+GET http://localhost:8080/api/matches/1
+
+### Start next round
+POST http://localhost:8080/api/matches/1/rounds/start
+Authorization: Bearer {{token1}}
+
+### Player 1 plays turn in round 2 - first roll
+POST http://localhost:8080/api/matches/1/turns/play
+Authorization: Bearer {{token1}}
+Content-Type: application/json
+
+{}
+
+### Player 1 plays turn in round 2 - reroll
+POST http://localhost:8080/api/matches/1/turns/play
+Authorization: Bearer {{token1}}
+Content-Type: application/json
+
+{
+  "kept_dice": [false, false, false, false, false]
+}
+
+### Player 1 passes turn
+POST http://localhost:8080/api/matches/1/turns/pass
+Authorization: Bearer {{token1}}
+
+### Get current round state after Player 1 in round 2
+GET http://localhost:8080/api/matches/1/rounds/2
+Authorization: Bearer {{token1}}
+
+### Player 2 plays turn in round 2 - first roll
+POST http://localhost:8080/api/matches/1/turns/play
+Authorization: Bearer {{token2}}
+Content-Type: application/json
+
+{}
+
+### Player 2 plays turn in round 2 - reroll
+POST http://localhost:8080/api/matches/1/turns/play
+Authorization: Bearer {{token2}}
+Content-Type: application/json
+
+{
+  "kept_dice": [false, true, false, true, false]
+}
+
+### Get current round state after Player 2 in round 2
+GET http://localhost:8080/api/matches/1/rounds/2
+Authorization: Bearer {{token2}}
+
+### Player 2 passes turn in round 2
+POST http://localhost:8080/api/matches/1/turns/pass
+Authorization: Bearer {{token2}}
+
+### Finish round 2
+POST http://localhost:8080/api/matches/1/finish
+Authorization: Bearer {{token1}}
+
+### Get current user info (first user)
+GET http://localhost:8080/api/me
+Authorization: Bearer {{token1}}
+
+### Get current user info (second user)
+GET http://localhost:8080/api/me
+Authorization: Bearer {{token2}}
+
+### Logout first user
+POST http://localhost:8080/api/logout
+Authorization: Bearer {{token1}}

@@ -1,0 +1,627 @@
+P16 assembler v1.5 (Feb  9 2024)	ProjetoG19LEIC21D.lst	Wed Jun 05 18:04:05 2024
+
+Sections
+Index   Name            Address   Size
+0       startup         0000      0014 20
+1       .text           0014      01F4 500
+2       .data           0208      0010 16
+3       .stack          0218      0040 64
+
+Symbols
+Name                    Type      Value       Section
+_start                  LABEL     0004 4      startup
+BLINK_TIME              ABSOLUTE  0005 5      startup
+car_trafic              LABEL     0042 66     .text
+car_trafic_flash_off    LABEL     007C 124    .text
+car_trafic_flash_off_do LABEL     0080 128    .text
+car_trafic_flash_on     LABEL     0058 88     .text
+car_trafic_flash_on_do  LABEL     005C 92     .text
+check_rising_edge       LABEL     015A 346    .text
+check_rising_edge_return LABEL     016C 364    .text
+check_time              LABEL     0146 326    .text
+check_time_return       LABEL     0158 344    .text
+config                  LABEL     00E6 230    .text
+CONFIG_BUTTON           ABSOLUTE  0010 16     startup
+config_fcn              LABEL     0030 48     .text
+config_flash_off        LABEL     0114 276    .text
+config_flash_on_do      LABEL     0106 262    .text
+config_jump_pedestrian  LABEL     00E2 226    .text
+config_jump_trafic      LABEL     00A2 162    .text
+config_lights           LABEL     00F4 244    .text
+config_time             LABEL     012A 298    .text
+CPSR_BIT_I              ABSOLUTE  0010 16     startup
+CROSSING_TIME           ABSOLUTE  0064 100    startup
+else_trafic             LABEL     0034 52     .text
+inport_addr             LABEL     01A4 420    .text
+INPORT_ADDRESS          ABSOLUTE  FF80 65408  startup
+inport_read             LABEL     019E 414    .text
+isr                     LABEL     0174 372    .text
+isr_addr                LABEL     0012 18     startup
+L1_AMBAR                ABSOLUTE  0003 3      startup
+L1_GREEN                ABSOLUTE  0002 2      startup
+L1_RED                  ABSOLUTE  0001 1      startup
+L2_AMBAR                ABSOLUTE  000C 12     startup
+L2_GREEN                ABSOLUTE  0008 8      startup
+L2_RED                  ABSOLUTE  0004 4      startup
+L3_AMBAR                ABSOLUTE  0030 48     startup
+L3_GREEN                ABSOLUTE  0020 32     startup
+L3_RED                  ABSOLUTE  0010 16     startup
+last_button             LABEL     0216 534    .data
+last_button_addr        LABEL     0172 370    .text
+line#62                 LABEL     000C 12     startup
+main                    LABEL     0014 20     .text
+main_addr               LABEL     0010 16     startup
+main_loop               LABEL     0026 38     .text
+outport_addr            LABEL     01D6 470    .text
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  startup
+outport_clear_bits      LABEL     01B4 436    .text
+outport_img             LABEL     0208 520    .data
+outport_img_addr        LABEL     01CE 462    .text
+outport_init            LABEL     01C4 452    .text
+OUTPORT_INIT_VAL        ABSOLUTE  0000 0      startup
+outport_set_bits        LABEL     01A6 422    .text
+outport_write           LABEL     01D0 464    .text
+PEDESTRIAN_BUTTON       ABSOLUTE  0001 1      startup
+pedestrian_cross        LABEL     00AA 170    .text
+pedestrian_cross_add    LABEL     00DC 220    .text
+pedestrian_cross_do     LABEL     00C0 192    .text
+pedestrian_cross_return LABEL     00E0 224    .text
+pedestrian_fcn          LABEL     00A6 166    .text
+PTC_ADDR                LABEL     0206 518    .text
+PTC_ADDRESS             ABSOLUTE  FF40 65344  startup
+ptc_clr_irq             LABEL     0200 512    .text
+PTC_CMD_START           ABSOLUTE  0000 0      startup
+PTC_CMD_STOP            ABSOLUTE  0001 1      startup
+ptc_get_value           LABEL     01FA 506    .text
+ptc_init                LABEL     01D8 472    .text
+ptc_start               LABEL     01EA 490    .text
+ptc_stop                LABEL     01F2 498    .text
+PTC_TC                  ABSOLUTE  0004 4      startup
+PTC_TCR                 ABSOLUTE  0000 0      startup
+PTC_TIR                 ABSOLUTE  0006 6      startup
+PTC_TMR                 ABSOLUTE  0002 2      startup
+STACK_SIZE              ABSOLUTE  0040 64     startup
+stack_top               LABEL     0258 600    .stack
+stack_top_addr          LABEL     000E 14     startup
+sysclk                  LABEL     020A 522    .data
+sysclk_addr             LABEL     019C 412    .text
+SYSCLK_FREQ             ABSOLUTE  0063 99     startup
+sysclk_get_ticks        LABEL     0196 406    .text
+sysclk_init             LABEL     018A 394    .text
+times                   LABEL     020C 524    .data
+times_addr              LABEL     0144 324    .text
+TIMES_BUTTONS           ABSOLUTE  00E0 224    startup
+trafic                  LABEL     0038 56     .text
+
+Code listing
+   1           	; Ficheiro:  ProjetoG19LEIC21D.S
+   2           	; Descricao: Ficheiro que implementa o Projeto da disciplina. Este projeto
+   3           	;            consiste em fazer um semáforo, em que temos uma rotina de
+   4           	;			 passagem de carros, passagem de pedestres e uma rotina de configuração
+   5           	;			 onde podemos definir o tempo que demora a passar da rotina de passagem
+   6           	;			 de pedestres para a rotina de passagem de carros
+   7           	; Autor:     José Saldanha (Nº 51445) e Ricardo Pinto (Nº 51447)
+   8           	; Data:      05-06-2024
+   9           	
+  10           	; Definicao dos valores dos simbolos utilizados no programa
+  11           	;
+  12          		.equ	CPSR_BIT_I, 0b010000          ; Mascara para o bit I do registo CPSR
+  13           	
+  14          		.equ	STACK_SIZE, 64                ; Dimensao do stack - 64 B
+  15           	
+  16           		; Definicoes do porto de entrada
+  17          		.equ	INPORT_ADDRESS, 0xFF80        ; Endereco do porto de entrada
+  18           	
+  19           		; Definicoes do porto de saida
+  20          		.equ	OUTPORT_ADDRESS, 0xFFC0       ; Endereco do porto de saida
+  21           	
+  22          		.equ	OUTPORT_INIT_VAL, 0           ; Valor inicial do porto de saida
+  23           	
+  24           		; Definicoes do circuito pTC
+  25          		.equ	PTC_ADDRESS,  0xFF40          ; Endereco do circuito pTC
+  26          		.equ	PTC_TCR, 0                    ; Deslocamento do registo TCR do pTC
+  27          		.equ	PTC_TMR, 2                    ; Deslocamento do registo TMR do pTC
+  28          		.equ	PTC_TC,  4                    ; Deslocamento do registo TC do pTC
+  29          		.equ	PTC_TIR, 6                    ; Deslocamento do registo TIR do pTC
+  30          		.equ	PTC_CMD_START, 0              ; Comando para iniciar a contagem no pTC
+  31          		.equ	PTC_CMD_STOP, 1               ; Comando para parar a contagem no pTC
+  32          		.equ	SYSCLK_FREQ, 0x63             ; Intervalo de contagem do circuito pTC
+  33           	                                          ; que suporta a implementação do sysclk
+  34           		; Outras definicoes
+  35          		.equ	BLINK_TIME, 5
+  36          		.equ	CROSSING_TIME, 100
+  37          		.equ	PEDESTRIAN_BUTTON, 0x01
+  38          		.equ	CONFIG_BUTTON, 0x10
+  39          		.equ	TIMES_BUTTONS, 0xE0
+  40          		.equ	L1_RED, 0x01
+  41          		.equ	L1_GREEN, 0x02
+  42          		.equ	L1_AMBAR, 0x03
+  43          		.equ	L2_RED, 0x04
+  44          		.equ	L2_GREEN, 0x08
+  45          		.equ	L2_AMBAR, 0x0C
+  46          		.equ	L3_RED, 0x10
+  47          		.equ	L3_GREEN, 0x20
+  48          		.equ	L3_AMBAR, 0x30
+  49           		
+  50           	
+  51           	; Seccao:    startup
+  52           	; Descricao: Guarda o código de arranque do sistema
+  53           	;  
+  54           		.section startup
+  55 0000 01 58		b	_start
+  56 0002 7F 0C		ldr	pc, isr_addr
+  57           	_start:
+  58 0004 4D 0C		ldr	sp, stack_top_addr
+  59 0006 80 B7	    mov r0, pc
+  60 0008 0E A2	    add lr, r0, #4
+  61 000A 2F 0C		ldr	pc, main_addr
+  62 000C FF 5B	    b   .
+  63           	
+  64           	stack_top_addr:
+  65 000E 58 02		.word	stack_top
+  66           	main_addr:
+  67 0010 14 00		.word	main
+  68           	isr_addr:
+  69 0012 74 01		.word	isr
+  70           	
+  71           	; Seccao:    text
+  72           	; Descricao: Guarda o código do programa
+  73           	;
+  74           		.text
+  75           	main:
+  76 0014 00 60		mov	r0, #OUTPORT_INIT_VAL
+  77 0016 D6 5C		bl	outport_init
+  78 0018 30 66		mov	r0, #SYSCLK_FREQ
+  79 001A B7 5C		bl	sysclk_init
+  80 001C 60 B0		mrs	r0, cpsr
+  81 001E 01 61		mov	r1, #CPSR_BIT_I
+  82 0020 80 C8		orr	r0, r0, r1
+  83 0022 40 B0		msr	cpsr, r0
+  84 0024 45 66		mov r5, #CROSSING_TIME
+  85           	main_loop:
+  86 0026 BB 5C		bl inport_read
+  87 0028 02 61		mov r2, #CONFIG_BUTTON
+  88 002A 20 C0		and r0, r2, r0
+  89 002C 01 44		bzc config_fcn
+  90 002E 02 58		b else_trafic
+  91           	config_fcn:
+  92 0030 5A 5C		bl config
+  93 0032 F9 5B		b main_loop
+  94           	else_trafic:
+  95 0034 01 5C		bl 	trafic
+  96 0036 F7 5B		b	main_loop
+  97           	
+  98           	;Rotina: trafic
+  99           	;Descrição: Rotina principal, onde estamos no modo de tráfego de carros. Aqui vamos sempre
+ 100           	;			verificando se for premido o botão de pedestres ou se vamos para o modo de
+ 101           	;			configuração.
+ 102           	trafic:
+ 103 0038 0E 24		push lr
+ 104 003A F0 6F		mov r0, #0xFF
+ 105 003C BB 5C		bl outport_clear_bits
+ 106 003E 00 62		mov r0, #L3_GREEN
+ 107 0040 B2 5C		bl outport_set_bits
+ 108           	car_trafic: ;acende a luz vermelha para os peões, verifica se o botão dos pedestres foi pressionado
+ 109 0042 40 60		mov r0, #L2_RED
+ 110 0044 B0 5C		bl outport_set_bits
+ 111 0046 AB 5C		bl inport_read
+ 112 0048 12 60		mov r2, #PEDESTRIAN_BUTTON
+ 113 004A 20 C0		and r0, r2, r0
+ 114 004C 86 5C		bl check_rising_edge
+ 115 004E 2D 40		beq pedestrian_cross
+ 116 0050 A6 5C		bl inport_read
+ 117 0052 02 61		mov r2, #CONFIG_BUTTON
+ 118 0054 20 C0		and r0, r2, r0
+ 119 0056 25 44		bzc config_jump_trafic
+ 120           	car_trafic_flash_on: 
+ 121 0058 9E 5C		bl sysclk_get_ticks
+ 122 005A 04 B0		mov r4, r0
+ 123           	car_trafic_flash_on_do: ;ativa a luz amarela para os carros
+ 124 005C A0 5C		bl inport_read
+ 125 005E 12 60		mov r2, #PEDESTRIAN_BUTTON
+ 126 0060 20 C0		and r0, r2, r0
+ 127 0062 7B 5C		bl check_rising_edge
+ 128 0064 22 40		beq pedestrian_cross
+ 129 0066 9B 5C		bl inport_read
+ 130 0068 02 61		mov r2, #CONFIG_BUTTON
+ 131 006A 20 C0		and r0, r2, r0
+ 132 006C 1A 44		bzc config_jump_trafic
+ 133 006E 30 60		mov r0, #L1_AMBAR
+ 134 0070 9A 5C		bl outport_set_bits
+ 135 0072 01 B2		mov r1, r4
+ 136 0074 52 60		mov r2, #BLINK_TIME
+ 137 0076 67 5C		bl check_time
+ 138 0078 00 C0		and r0, r0, r0
+ 139 007A F0 4F		blo car_trafic_flash_on_do
+ 140           	car_trafic_flash_off: 
+ 141 007C 8C 5C		bl sysclk_get_ticks
+ 142 007E 04 B0		mov r4, r0
+ 143           	car_trafic_flash_off_do: ;desliga a luz amarela
+ 144 0080 8E 5C		bl inport_read
+ 145 0082 12 60		mov r2, #PEDESTRIAN_BUTTON
+ 146 0084 20 C0		and r0, r2, r0
+ 147 0086 69 5C		bl check_rising_edge
+ 148 0088 10 40		beq pedestrian_cross
+ 149 008A 89 5C		bl inport_read
+ 150 008C 02 61		mov r2, #CONFIG_BUTTON
+ 151 008E 20 C0		and r0, r2, r0
+ 152 0090 08 44		bzc config_jump_trafic
+ 153 0092 30 60		mov r0, #L1_AMBAR
+ 154 0094 8F 5C		bl outport_clear_bits
+ 155 0096 01 B2		mov r1, r4
+ 156 0098 52 60		mov r2, #BLINK_TIME
+ 157 009A 55 5C		bl check_time
+ 158 009C 00 C0		and r0, r0, r0
+ 159 009E F0 4F		blo car_trafic_flash_off_do
+ 160 00A0 0F 04		pop pc
+ 161           		
+ 162           	config_jump_trafic:
+ 163 00A2 21 5C		bl config
+ 164 00A4 C9 5B		b trafic
+ 165           		
+ 166           	pedestrian_fcn:
+ 167 00A6 01 5C		bl pedestrian_cross
+ 168 00A8 C7 5B		b trafic
+ 169           		
+ 170           	;Rotina: pedestrian_cross
+ 171           	;Descrição: Rotina que é executada quando é premido o botão de passagem de pedestres.
+ 172           	;			 Nela é contado o tempo dado por CROSSING_TIME e só sai da rotina, quando
+ 173           	;			 esse mesmo tempo já ter percorrido.
+ 174           	pedestrian_cross: 
+ 175 00AA 79 5C		bl inport_read
+ 176 00AC F0 60		mov r0, #0x0F
+ 177 00AE 82 5C		bl outport_clear_bits
+ 178 00B0 11 60		mov r1, #L1_RED
+ 179 00B2 80 C8		orr r0, r0, r1
+ 180 00B4 81 60		mov r1, #L2_GREEN
+ 181 00B6 80 C8		orr r0, r0, r1
+ 182 00B8 76 5C		bl outport_set_bits
+ 183 00BA 6D 5C		bl sysclk_get_ticks
+ 184 00BC 04 B0		mov r4, r0
+ 185 00BE 82 B2		mov r2, r5
+ 186           	pedestrian_cross_do: ;averigua se o tempo já decorreu ou não
+ 187 00C0 6E 5C		bl inport_read
+ 188 00C2 03 61		mov r3, #CONFIG_BUTTON
+ 189 00C4 30 C0		and r0, r3, r0
+ 190 00C6 0D 44		bzc config_jump_pedestrian
+ 191 00C8 01 B2		mov r1, r4
+ 192 00CA 3D 5C		bl check_time
+ 193 00CC 00 C0		and r0, r0, r0
+ 194 00CE 08 44		bzc pedestrian_cross_return
+ 195 00D0 66 5C		bl inport_read
+ 196 00D2 13 60		mov r3, #PEDESTRIAN_BUTTON
+ 197 00D4 30 C0		and r0, r3, r0
+ 198 00D6 41 5C		bl check_rising_edge
+ 199 00D8 01 40		bzs pedestrian_cross_add
+ 200 00DA F2 5B		b pedestrian_cross_do
+ 201           	pedestrian_cross_add: ;sempre que o o botão dos pedestres é pressionado, adiciona o tempo correspondente da pressão ao tempo corrente
+ 202 00DC A2 82		add r2, r2, r5
+ 203 00DE F0 5B		b pedestrian_cross_do
+ 204           	pedestrian_cross_return:
+ 205 00E0 AB 5B		b trafic
+ 206           	
+ 207           	config_jump_pedestrian:
+ 208 00E2 01 5C		bl config
+ 209 00E4 E2 5B		b pedestrian_cross
+ 210           	
+ 211           	;Rotina: config
+ 212           	;Descrição: Rotina que implementa o modo de configuração. Neste modo, podemos
+ 213           	;			 alterar o valor da variável CROSSING_TIME
+ 214           	config:
+ 215 00E6 0E 24		push lr
+ 216 00E8 F0 6F		mov r0, #0xFF
+ 217 00EA 64 5C		bl outport_clear_bits
+ 218 00EC 00 63		mov r0, #L3_AMBAR
+ 219 00EE 5B 5C		bl outport_set_bits
+ 220 00F0 52 5C		bl sysclk_get_ticks
+ 221 00F2 04 B0		mov r4, r0
+ 222           	config_lights: ;ativa a luz verde para os peões e a luz amarela para os carros
+ 223 00F4 54 5C		bl inport_read
+ 224 00F6 02 61		mov r2, #CONFIG_BUTTON
+ 225 00F8 20 C0		and r0, r2, r0
+ 226 00FA 95 43		bzs main_loop
+ 227 00FC 81 60		mov r1, #L2_GREEN
+ 228 00FE 80 C8		orr r0, r0, r1
+ 229 0100 31 60		mov r1, #L1_AMBAR
+ 230 0102 80 C8		orr r0, r0, r1
+ 231 0104 50 5C		bl outport_set_bits
+ 232           	config_flash_on_do:  ;afere se as luzes precisam de ser desligadas
+ 233 0106 01 B2		mov r1, r4
+ 234 0108 52 60		mov r2, #BLINK_TIME 
+ 235 010A 1D 5C		bl check_time
+ 236 010C 00 C0		and r0, r0, r0
+ 237 010E F2 4F		blo config_lights
+ 238 0110 42 5C		bl sysclk_get_ticks
+ 239 0112 04 B0		mov r4, r0
+ 240           	config_flash_off:  ;desliga as luzes
+ 241 0114 44 5C		bl inport_read
+ 242 0116 02 61		mov r2, #CONFIG_BUTTON
+ 243 0118 20 C0		and r0, r2, r0
+ 244 011A 85 43		bzs main_loop
+ 245 011C F0 60		mov r0, #0x0F
+ 246 011E 4A 5C		bl outport_clear_bits
+ 247 0120 01 B2		mov r1, r4
+ 248 0122 52 60		mov r2, #BLINK_TIME 
+ 249 0124 10 5C		bl check_time
+ 250 0126 00 C0		and r0, r0, r0
+ 251 0128 F5 43		bzs config_flash_off
+ 252           	config_time:  ;controla o tempo da passagem dos peões
+ 253 012A 39 5C		bl inport_read
+ 254 012C 02 61		mov r2, #CONFIG_BUTTON
+ 255 012E 20 C0		and r0, r2, r0
+ 256 0130 7A 43		bzs main_loop
+ 257 0132 35 5C		bl inport_read
+ 258 0134 02 6E		mov r2, #TIMES_BUTTONS
+ 259 0136 20 C0		and r0, r2, r0
+ 260 0138 80 EA		lsr r0, r0, #5
+ 261 013A 00 80		add r0, r0, r0
+ 262 013C 33 0C		ldr r3, times_addr
+ 263 013E 30 10		ldr r0, [r3, r0]
+ 264 0140 05 B0		mov r5, r0
+ 265 0142 0F 04		pop pc
+ 266           		
+ 267           	times_addr:
+ 268 0144 0C 02		.word times
+ 269           	
+ 270           	;Rotina: check_time
+ 271           	;Descrição: Verifica se já passou o tempo definido no registo 2, caso não tenha passado
+ 272           	;			mete o valor 0 no registo 0, caso já tenha passado, mete o valor 1 no registo
+ 273           	;			0.
+ 274           	check_time:
+ 275 0146 0E 24		push lr
+ 276 0148 01 24		push r1
+ 277 014A 25 5C		bl sysclk_get_ticks
+ 278 014C 01 04		pop r1
+ 279 014E 80 88		sub r0, r0, r1
+ 280 0150 00 B9		cmp r0, r2
+ 281 0152 00 60		mov r0, #0
+ 282 0154 01 4C		blo check_time_return
+ 283 0156 10 60		mov r0, #1
+ 284           	check_time_return:
+ 285 0158 0F 04		pop pc
+ 286           	
+ 287           	;Rotina: check_rising_edge
+ 288           	;Descrição: Rotina que verifica se houve uma transição ascendente do botão dos
+ 289           	;			pedestres
+ 290           	check_rising_edge:
+ 291 015A 02 24		push r2
+ 292 015C 01 B0		mov r1, r0
+ 293 015E 00 60		mov r0, #0
+ 294 0160 82 0C		ldr r2, last_button_addr
+ 295 0162 04 40		bzs	check_rising_edge_return
+ 296 0164 23 08		ldrb r3, [r2]
+ 297 0166 B3 C1		and r3, r3, r3
+ 298 0168 01 44		bzc check_rising_edge_return
+ 299 016A 10 60		mov r0, #1
+ 300           	check_rising_edge_return:
+ 301 016C 21 28		strb r1, [r2]
+ 302 016E 02 04		pop r2
+ 303 0170 0F B7		mov pc, lr
+ 304           		
+ 305           	last_button_addr:
+ 306 0172 16 02		.word last_button
+ 307           	
+ 308           	
+ 309           	; Rotina:    isr
+ 310           	; Descricao: Incrementa o valor da variável global sysclk.
+ 311           	isr:
+ 312 0174 0E 24		push lr
+ 313 0176 01 24		push r1
+ 314 0178 00 24		push r0
+ 315 017A 0D 5C		bl 	 sysclk_get_ticks
+ 316 017C 80 A0		add	 r0, r0, #1
+ 317 017E 10 20		str	 r0, [r1]
+ 318 0180 3F 5C		bl	 ptc_clr_irq
+ 319 0182 00 04		pop  r0
+ 320 0184 01 04		pop  r1
+ 321 0186 0E 04		pop	 lr
+ 322 0188 20 B0		movs pc, lr
+ 323           	
+ 324           	; Rotina:    sysclk_init
+ 325           	; Descricao: Inicia uma nova contagem no periferico pTC com o intervalo de
+ 326           	;            contagem recebido em R0, em ticks, limpando eventuais pedidos de
+ 327           	;            interrupcao pendentes e iniciando com o valor zero a variavel
+ 328           	;            global sysclk.
+ 329           	;            Interface exemplo: void sysclk_init( uint8_t interval );
+ 330           	; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
+ 331           	; Saidas:    -
+ 332           	; Efeitos:   Inicia a contagem no periferico a partir do valor zero, limpando
+ 333           	;            eventuais pedidos de interrupcao pendentes e iniciando com o
+ 334           	;            valor zero a variavel global sysclk
+ 335           	sysclk_init:
+ 336 018A 0E 24	    push lr
+ 337 018C 25 5C		bl 	 ptc_init
+ 338 018E 00 60		mov  r0, #0
+ 339 0190 51 0C		ldr	 r1, sysclk_addr
+ 340 0192 10 20		str  r0, [r1]
+ 341 0194 0F 04		pop  pc
+ 342           	
+ 343           	; Rotina:    sysclk_get_ticks
+ 344           	; Descricao: Devolve o valor corrente da variável global sysclk.
+ 345           	;            Interface exemplo: uint16_t sysclk_get_ticks ( );
+ 346           	sysclk_get_ticks:
+ 347 0196 21 0C		ldr r1, sysclk_addr
+ 348 0198 10 00		ldr	r0, [r1]
+ 349 019A 0F B7		mov pc, lr
+ 350           		
+ 351           	sysclk_addr:
+ 352 019C 0A 02		.word sysclk
+ 353           	
+ 354           	; Rotina:    inport_read
+ 355           	; Descricao: Adquire e devolve o valor corrente do porto de entrada.
+ 356           	;            Interface exemplo: uint8_t inport_read( );
+ 357           	inport_read:
+ 358 019E 21 0C		ldr	r1, inport_addr
+ 359 01A0 10 08		ldrb	r0, [r1, #0]
+ 360 01A2 0F B7		mov	pc, lr
+ 361           	
+ 362           	inport_addr:
+ 363 01A4 80 FF		.word	INPORT_ADDRESS
+ 364           	
+ 365           	; Gestor de periférico para o porto de saída
+ 366           	;
+ 367           	; Rotina:    outport_set_bits
+ 368           	; Descricao: Atribui o valor logico 1 aos bits do porto de saida identificados
+ 369           	;            com o valor 1 em R0. O valor dos outros bits nao e alterado.
+ 370           	;            Interface exemplo: void outport_set_bits( uint8_t pins_mask );
+ 371           	; Entradas:  R0 - Mascara com a especificacao do indice dos bits a alterar.
+ 372           	; Saidas:    -
+ 373           	; Efeitos:   Altera o valor da variavel global outport_img.
+ 374           	outport_set_bits:
+ 375 01A6 0E 24		push	lr
+ 376 01A8 21 0D		ldr	r1, outport_img_addr
+ 377 01AA 12 08		ldrb	r2, [r1, #0]
+ 378 01AC 20 C8		orr	r0, r2, r0
+ 379 01AE 10 28		strb	r0, [r1, #0]
+ 380 01B0 0F 5C		bl	outport_write
+ 381 01B2 0F 04		pop	pc
+ 382           	
+ 383           	; Rotina:    outport_clear_bits
+ 384           	; Descricao: Atribui o valor logico 0 aos bits do porto de saida identificados
+ 385           	;            com o valor 1 em R0. O valor dos outros bits nao e alterado.
+ 386           	;            Interface exemplo: void outport_clear_bits( uint8_t pins_mask );
+ 387           	; Entradas:  R0 - Mascara com a especificacao do indice dos bits a alterar.
+ 388           	; Saidas:    -
+ 389           	; Efeitos:   Altera o valor da variavel global outport_img.
+ 390           	outport_clear_bits:
+ 391 01B4 0E 24		push	lr
+ 392 01B6 B1 0C		ldr	r1, outport_img_addr
+ 393 01B8 12 08		ldrb	r2, [r1, #0]
+ 394 01BA 10 B0		mvn	r0, r0
+ 395 01BC 20 C0		and	r0, r2, r0
+ 396 01BE 10 28		strb	r0, [r1]
+ 397 01C0 07 5C		bl	outport_write
+ 398 01C2 0F 04		pop	pc
+ 399           	
+ 400           	; Rotina:    outport_init
+ 401           	; Descricao: Faz a iniciacao do porto de saida, nele estabelecendo o valor
+ 402           	;            recebido em R0.
+ 403           	;            Interface exemplo: void outport_init( uint8_t value );
+ 404           	; Entradas:  R0 - Valor a atribuir ao porto de saida.
+ 405           	; Saidas:    -
+ 406           	; Efeitos:   Altera o valor da variavel global outport_img.
+ 407           	outport_init:
+ 408 01C4 0E 24		push	lr
+ 409 01C6 31 0C		ldr	r1, outport_img_addr
+ 410 01C8 10 28		strb	r0, [r1]
+ 411 01CA 02 5C		bl	outport_write
+ 412 01CC 0F 04		pop	pc
+ 413           	
+ 414           	outport_img_addr:
+ 415 01CE 08 02		.word	outport_img
+ 416           	
+ 417           	; Rotina:    outport_write
+ 418           	; Descricao: Escreve no porto de saida o valor recebido em R0.
+ 419           	;            Interface exemplo: void outport_write( uint8_t value );
+ 420           	; Entradas:  R0 - valor a atribuir ao porto de saida.
+ 421           	; Saidas:    -
+ 422           	; Efeitos:   -
+ 423           	outport_write:
+ 424 01D0 21 0C		ldr	r1, outport_addr
+ 425 01D2 10 28		strb	r0, [r1, #0]
+ 426 01D4 0F B7		mov	pc, lr
+ 427           	
+ 428           	outport_addr:
+ 429 01D6 C0 FF		.word	OUTPORT_ADDRESS
+ 430           	
+ 431           	; Gestor de periférico para o Pico Timer/Counter (pTC)
+ 432           	;
+ 433           	
+ 434           	; Rotina:    ptc_init
+ 435           	; Descricao: Faz a iniciacao do periférico pTC, habilitando o seu funcionamento
+ 436           	;            em modo continuo e com o intervalo de contagem recebido em R0, em
+ 437           	;            ticks.
+ 438           	;            Interface exemplo: void ptc_init( uint8_t interval );
+ 439           	; Entradas:  R0 - Valor do novo intervalo de contagem, em ticks.
+ 440           	; Saidas:    -
+ 441           	; Efeitos:   Inicia a contagem no periferico a partir do valor zero, limpando
+ 442           	;            o pedido de interrupcao eventualmente pendente.
+ 443           	ptc_init:
+ 444 01D8 0E 24	    push    lr
+ 445 01DA 51 0D		ldr	r1, PTC_ADDR
+ 446 01DC 12 60		mov	r2, #PTC_CMD_STOP
+ 447 01DE 12 28		strb	r2, [r1, #PTC_TCR]
+ 448 01E0 10 29		strb	r0, [r1, #PTC_TMR]
+ 449 01E2 0E 5C	    bl  ptc_clr_irq
+ 450 01E4 02 60		mov	r2, #PTC_CMD_START
+ 451 01E6 12 28		strb	r2, [r1, #PTC_TCR]
+ 452 01E8 0F 04		pop pc
+ 453           	
+ 454           	; Rotina:    ptc_start
+ 455           	; Descricao: Habilita a contagem no periferico pTC.
+ 456           	;            Interface exemplo: void ptc_start( );
+ 457           	; Entradas:  -
+ 458           	; Saidas:    -
+ 459           	; Efeitos:   -
+ 460           	ptc_start:
+ 461 01EA D0 0C		ldr	r0, PTC_ADDR
+ 462 01EC 01 60		mov	r1, #PTC_CMD_START
+ 463 01EE 01 28		strb	r1, [r0, #PTC_TCR]
+ 464 01F0 0F B7		mov	pc, lr
+ 465           	
+ 466           	; Rotina:    ptc_stop
+ 467           	; Descricao: Para a contagem no periferico pTC.
+ 468           	;            Interface exemplo: void ptc_stop( );
+ 469           	; Entradas:  -
+ 470           	; Saidas:    -
+ 471           	; Efeitos:   O valor do registo TC do periferico e colocado a zero.
+ 472           	ptc_stop:
+ 473 01F2 90 0C		ldr	r0, PTC_ADDR
+ 474 01F4 11 60		mov	r1, #PTC_CMD_STOP
+ 475 01F6 01 28		strb	r1, [r0, #PTC_TCR]
+ 476 01F8 0F B7		mov	pc, lr
+ 477           	
+ 478           	; Rotina:    ptc_get_value
+ 479           	; Descricao: Devolve o valor corrente da contagem do periferico pTC.
+ 480           	;            Interface exemplo: uint8_t ptc_get_value( );
+ 481           	; Entradas:  -
+ 482           	; Saidas:    R0 - O valor corrente do registo TC do periferico.
+ 483           	; Efeitos:   -
+ 484           	ptc_get_value:
+ 485 01FA 51 0C		ldr	r1, PTC_ADDR
+ 486 01FC 10 0A		ldrb	r0, [r1, #PTC_TC]
+ 487 01FE 0F B7		mov	pc, lr
+ 488           	
+ 489           	; Rotina:    ptc_clr_irq
+ 490           	; Descricao: Sinaliza o periferico pTC que foi atendido um pedido de
+ 491           	;            interrupção.
+ 492           	;            Interface exemplo: void ptc_clr_irq( );
+ 493           	; Entradas:  -
+ 494           	; Saidas:    -
+ 495           	; Efeitos:   -
+ 496           	ptc_clr_irq:
+ 497 0200 20 0C		ldr	r0, PTC_ADDR
+ 498 0202 01 2B		strb	r1, [r0, #PTC_TIR]
+ 499 0204 0F B7		mov	pc, lr
+ 500           	
+ 501           	PTC_ADDR:
+ 502 0206 40 FF		.word	PTC_ADDRESS
+ 503           	
+ 504           	; Seccao:    data
+ 505           	; Descricao: Guarda as variáveis globais
+ 506           	;
+ 507           		.data
+ 508           	outport_img:
+ 509 0208 00   		.space	1
+ 510           	
+ 511 0209 00  		.align
+ 512           	sysclk:
+ 513 020A 00   		.space	2
+ 513 020B 00
+ 514           	
+ 515           	times:
+ 516          		.word 150, 250, 350, 450, 550
+ 516 020C 96 00 FA 00 5E 01 C2 01 26 02
+ 517           	
+ 518           	last_button:
+ 519 0216 00   		.space 1
+ 520 0217 00  		.align
+ 521           	
+ 522           	; Seccao:    stack
+ 523           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
+ 524           	;
+ 525           		.stack
+ 526 0218 00   		.space	STACK_SIZE
+ 526 .... ..
+ 526 0257 00
+ 527           	stack_top:

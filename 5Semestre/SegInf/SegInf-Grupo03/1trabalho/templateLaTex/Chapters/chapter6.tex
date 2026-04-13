@@ -1,0 +1,90 @@
+\chapter{Exercício 6}
+\label{cha:exercise_6}
+
+\section{Assinatura digital com RSA}
+
+O exercício 6 propõe a implementação de um esquema de assinatura digital baseado no algoritmo assimétrico \textbf{RSA}, usando a biblioteca \textit{Java Cryptography Architecture (JCA)}.  
+A aplicação permite assinar e verificar ficheiros de qualquer dimensão, suportando as funções de hash \texttt{SHA-1} e \texttt{SHA-256}, e valida a cadeia de certificação do certificado do assinante antes de verificar a assinatura.
+
+\subsection{Descrição geral da implementação}
+
+A aplicação \texttt{DigitalSign.java} define duas operações principais configuradas por linha de comandos: o modo de assinatura (\texttt{-sign}) e o modo de verificação (\texttt{-verify}).  
+O algoritmo de assinatura selecionado depende da flag de hash: \texttt{SHA1withRSA} para \texttt{-sha1} e \texttt{SHA256withRSA} para \texttt{-sha256}.
+
+A implementação faz uso das APIs padrão de segurança do Java para:
+\begin{itemize}
+    \item Carregar \textit{keystores} (formato PKCS\#12) e extrair chaves privadas;
+    \item Criar e utilizar objetos \texttt{Signature} para assinar/verificar dados;
+    \item Carregar certificados X.509 e construir/validar caminhos de certificação com \texttt{CertPathBuilder} e parâmetros PKIX.
+\end{itemize}
+
+\subsection{Modo de assinatura (\texttt{-sign})}
+
+No modo de assinatura, o programa executa os seguintes passos (descritos conceptualmente, sem apresentar código):
+
+\begin{enumerate}
+    \item O \textit{keystore} em formato PKCS\#12 é carregado utilizando a palavra-passe fornecida pelo utilizador.
+    \item O programa seleciona automaticamente a primeira entrada de chave privada encontrada no keystore. É feita uma verificação para garantir que a entrada obtida é efectivamente uma chave privada.
+    \item É inicializado um objecto de assinatura com o algoritmo apropriado (SHA-1 ou SHA-256 com RSA).
+    \item O ficheiro a assinar é lido de forma incremental, em blocos de dimensão fixa (no código de referência usa-se um buffer de 8\,192 bytes), e cada bloco é fornecido ao objecto de assinatura para atualizar o seu estado de forma incremental.
+    \item Quando todo o ficheiro foi processado, é gerada a assinatura final (um array de bytes) que é gravada num ficheiro de saída dedicado.
+\end{enumerate}
+
+A leitura incremental e a actualização por blocos do objecto de assinatura permitem que ficheiros de tamanho arbitrário sejam assinados sem carregar o conteúdo inteiro na memória.
+
+\subsection{Modo de verificação (\texttt{-verify})}
+
+No modo de verificação, a aplicação procede conceptualmente assim:
+
+\begin{enumerate}
+    \item Carrega o certificado do assinante (formato X.509).
+    \item Carrega o \textit{truststore} (formato JKS) que contém as entidades certificadoras consideradas confiáveis.
+    \item Carrega certificados intermediários a partir de uma directoria configurada, para auxiliar na construção da cadeia.
+    \item Constrói e valida a cadeia de certificação do certificado do assinante usando o \texttt{CertPathBuilder} e parâmetros PKIX. Caso a cadeia não seja válida, o processo de verificação da assinatura é interrompido e sinaliza-se a falha de confiança.
+    \item Se a cadeia for válida, inicializa-se o objecto de verificação com a chave pública do certificado do assinante.
+    \item O ficheiro cujo conteúdo se pretende verificar é lido incrementalmente (blocos de 8\,192 bytes) e cada bloco é fornecido ao objecto de verificação para actualizar o estado. No fim, a assinatura armazenada é comparada com o resultado calculado para determinar se a assinatura é válida.
+\end{enumerate}
+
+A validação da cadeia antes da verificação assegura que apenas certificados confiáveis são usados para aceitar assinaturas.
+
+\subsection{Processamento de ficheiros de grande dimensão}
+
+A característica fundamental que permite ao programa processar ficheiros de qualquer dimensão é o processamento em streaming (leitura incremental com buffer):
+
+\begin{itemize}
+    \item Em vez de carregar todo o ficheiro na memória, o programa lê blocos de tamanho fixo (no código de referência: 8\,192 bytes) e processa cada bloco imediatamente.
+    \item Nas operações de assinatura e de verificação, os métodos \texttt{update()} do objecto \texttt{Signature} são chamados por cada bloco lido, permitindo que o cálculo do digest/assinatura seja efectuado de forma incremental.
+    \item Só é mantido em memória um pequeno buffer por cada iteração; o resto do ficheiro permanece em disco até ser lido. Isto garante baixa utilização de memória mesmo para ficheiros muito grandes.
+\end{itemize}
+
+Esta abordagem torna a aplicação escalável e apropriada para ficheiros desde alguns kilobytes até gigabytes, dependendo apenas das capacidades de I/O do sistema e não da RAM disponível.
+
+\subsection{Validação da cadeia de certificação}
+
+A validação da cadeia é tratada através das seguintes decisões de design (descritas conceptualmente):
+
+\begin{itemize}
+    \item O certificado do assinante é utilizado como o ponto de partida (end-entity certificate).
+    \item Certificados intermédios são adicionados a um repositório temporário que auxilia a construção do caminho até a(s) raiz(es) de confiança presentes no \textit{truststore}.
+    \item O mecanismo de construção e validação usa o modelo PKIX: são definidos parâmetros que incluem o \textit{truststore} como fonte de raízes confiáveis e o certificado do assinante como alvo, e é invocado um \texttt{CertPathBuilder} para tentar construir e validar um caminho válido.
+    \item Caso a construção falhe (cadeia incompleta, certificados expirados, ou outros erros de validação), o programa rejeita o certificado e reporta a cadeia como inválida, evitando assim verificar assinaturas com certificados não confiáveis.
+\end{itemize}
+
+\subsection{Execução e utilização}
+
+A aplicação é controlada por argumentos na linha de comandos, distinguindo o modo de assinatura do modo de verificação e a função de hash a empregar. Em termos gerais, o fluxo de operação é:
+
+\begin{itemize}
+    \item No modo de assinatura: fornecer ficheiro a assinar, \textit{keystore}, palavra-passe e o ficheiro onde guardar a assinatura.
+    \item No modo de verificação: fornecer ficheiro original, ficheiro de assinatura, certificado do assinante, \textit{truststore} e password para o \textit{truststore}; o programa informa se a assinatura é válida e se a cadeia de certificação foi reconhecida como confiável.
+\end{itemize}
+
+\subsection{Conclusão}
+
+A implementação apresentada garante os requisitos fundamentais solicitados:
+\begin{itemize}
+    \item Assinatura e verificação de ficheiros de qualquer dimensão, graças ao processamento incremental;
+    \item Suporte a funções de hash adequadas para assinatura com RSA;
+    \item Validação da cadeia de certificação antes da verificação da assinatura, assegurando confiança na origem.
+    \item Seleção automática da chave privada no keystore, simplificando a utilização sem necessidade de fornecer um alias.
+\end{itemize}

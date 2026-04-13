@@ -1,0 +1,75 @@
+# Disallow all files by default (whitelisting)
+
+*
+!*/
+
+# Only allow the following specific files:
+# - License       : LICENSE
+# - Git admin     : .gitignore, .mailmap
+# - Build files   : Makefile, CMakeLists.txt
+# - C source code : *.h,*.c
+# - Assembly code : *.s, *.asm
+# - Documentation : Markdown (*.md), Asciidoc (*.adoc) or Text (*.txt)
+# - Image files   : *.png, *.jpg, *.svg, *.drawio
+# - PDF files     : *.pdf
+# - Shell scripts : *.sh
+# - Docker builds : Dockerfile
+# - Docker Compose: *.yml, *.yaml
+# - Systemd units : *.service, *.socket, etc.
+# - nginx config  : *.conf 
+# - JS / Node.js  : *.js, *.json
+
+!LICENSE
+
+!.gitignore
+!.mailmap
+
+!Makefile
+!CMakeLists.txt
+
+!*.h
+!*.c
+
+!*.s
+!*.asm
+
+!*.md
+!*.adoc
+
+!*.png
+!*.jpg
+!*.svg
+!*.drawio
+
+!*.pdf
+
+!*.sh
+
+!Dockerfile
+
+!*.yml
+!*.yaml
+
+!*.service
+!*.socket
+!*.device
+!*.mount
+!*.automount
+!*.swap
+!*.target
+!*.path
+!*.timer
+!*.snapshot
+!*.slice
+!*.scope
+
+!*.conf
+
+!*.js
+!*.json
+!*.ejs
+!*.css
+
+cw3/tvschat/webapp/package-lock.json
+cw3/tvschat/webapp/node_modules/
+.vscode

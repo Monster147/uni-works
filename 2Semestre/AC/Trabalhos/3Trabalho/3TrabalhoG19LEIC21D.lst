@@ -1,0 +1,106 @@
+P16 assembler v1.5 (Feb  9 2024)	3TrabalhoG19LEIC21D.lst	Wed May 08 10:58:33 2024
+
+Sections
+Index   Name            Address   Size
+0       startup         0000      000E 14
+1       .text           000E      002E 46
+2       .data           003C      0008 8
+3       .stack          0044      0040 64
+
+Symbols
+Name                    Type      Value       Section
+INPORT_ADDRESS          ABSOLUTE  D000 53248  startup
+inport_read             LABEL     002C 44     .text
+line#21                 LABEL     0008 8      startup
+loop                    LABEL     0018 24     .text
+main                    LABEL     000E 14     .text
+main_addr               LABEL     000C 12     startup
+numeros                 LABEL     003C 60     .data
+numeros_addr            LABEL     002A 42     .text
+OUTPORT_ADDRESS         ABSOLUTE  DFFF 57343  startup
+outport_write           LABEL     0034 52     .text
+STACK_SIZE              ABSOLUTE  0040 64     startup
+stack_top               LABEL     0084 132    .stack
+stack_top_addr          LABEL     000A 10     startup
+
+Code listing
+   1           	; Ficheiro:  3TrabalhoG19LEIC21D.S
+   2           	; Descricao: Programa para a realização do exercício 6 do 3º trabalho
+   3           	;            de avaliação de Arquitetura de Computadores.
+   4           	; Autor:     José Saldanha (Nº 51445) e Ricardo Pinto (Nº 51447)
+   5           	; Data:      07-05-2024
+   6           	
+   7           	; Definicao dos valores dos simbolos utilizados no programa
+   8          		.equ	STACK_SIZE, 64                
+   9          		.equ	INPORT_ADDRESS, 0xD000        
+  10          		.equ	OUTPORT_ADDRESS, 0xDFFF       
+  11           	
+  12           	
+  13           	; Seccao:    startup
+  14           	; Descricao: Guarda o código de arranque do sistema
+  15           	;
+  16           		.section startup
+  17 0000 4D 0C		ldr	sp, stack_top_addr
+  18 0002 80 B7	    mov r0, pc
+  19 0004 0E A2	    add lr, r0, #4
+  20 0006 2F 0C		ldr	pc, main_addr
+  21 0008 FF 5B	    b   .
+  22           	
+  23           	stack_top_addr:
+  24 000A 84 00		.word	stack_top
+  25           	main_addr:
+  26 000C 0E 00		.word	main
+  27           	
+  28           	; Seccao:    text
+  29           	; Descricao: Guarda o código do programa
+  30           	;
+  31           		.text
+  32           	main:
+  33 000E 0E 24		push	lr
+  34 0010 F0 6F		mov	r0, #0xFF
+  35 0012 10 5C		bl	outport_write
+  36 0014 00 60		mov	r0, #0x00
+  37 0016 0E 5C		bl	outport_write
+  38           	loop:
+  39 0018 09 5C		bl inport_read
+  40 001A 82 63		mov r2, #56
+  41 001C 20 C0		and r0, r2, r0
+  42 001E 80 E9		lsr r0, r0, #3
+  43 0020 43 0C		ldr r3, numeros_addr
+  44 0022 30 18		ldrb r0, [r3, r0]
+  45 0024 07 5C		bl outport_write
+  46 0026 F8 5B		b loop
+  47 0028 0F 04		pop	pc
+  48           	
+  49           	numeros_addr:
+  50 002A 3C 00		.word numeros
+  51           		
+  52           	inport_read:
+  53 002C 01 60		mov	r1, #INPORT_ADDRESS & 0xFF
+  54 002E 01 7D		movt	r1, #(INPORT_ADDRESS >> 8) & 0xFF
+  55 0030 10 08		ldrb	r0, [r1, #0]
+  56 0032 0F B7		mov	pc, lr
+  57           	
+  58           	outport_write:
+  59 0034 F1 6F		mov	r1, #OUTPORT_ADDRESS & 0xFF
+  60 0036 F1 7D		movt	r1, #(OUTPORT_ADDRESS >> 8) & 0xFF
+  61 0038 10 28		strb	r0, [r1, #0]
+  62 003A 0F B7		mov	pc, lr
+  63           	
+  64           	; Seccao:    data
+  65           	; Descricao: Guarda as variáveis globais
+  66           	;
+  67           		.data
+  68           	numeros:
+  69          		.byte 1, 2, 4, 8, 16, 32, 64, 128
+  69 003C 01 02 04 08 10 20 40 80
+  70           	
+  71           	; Seccao:    stack
+  72           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
+  73           	;
+  74           		.stack
+  75 0044 00   		.space	STACK_SIZE
+  75 .... ..
+  75 0083 00
+  76           	stack_top:
+  76           	

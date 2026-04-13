@@ -1,0 +1,1 @@
+BLACK # BLACK:0 null:0 WHITE:1 # WIN WHITE | WHITE/3a/false WHITE/2h/false WHITE/6d/false WHITE/2b/false WHITE/6f/true WHITE/5g/false WHITE/7a/false WHITE/5a/false

@@ -1,0 +1,50 @@
+\chapter{Exercício 4}
+\label{cha:exercise_4}
+
+\section{Política de controlo de acessos}
+
+Considere-se a política de controlo de acessos definida sobre o modelo RBAC1:
+
+\begin{itemize}
+    \item Conjunto de utilizadores: \(U = \{u_1,u_2,u_3\}\)
+    \item Conjunto de roles: \(R = \{r_0,r_1,r_2,r_3,r_4\}\)
+    \item Conjunto de permissões: \(P = \{p_a,p_b,p_c,p_d,p_e\}\)
+    \item Hierarquia de roles: \(\{r_0 \preceq r_2, r_1 \preceq r_3, r_2 \preceq r_4, r_3 \preceq r_4\} \subseteq RH\)
+    \item Associação utilizador-role: \(UA = \{(u_1,r_1),(u_2,r_2),(u_3,r_4)\}\)
+    \item Associação role-permissão: \(PA = \{(r_0,p_a),(r_1,p_b),(r_2,p_c),(r_3,p_d),(r_4,p_e)\}\)
+\end{itemize}
+
+Seja \(s_2\) um identificador de sessão tal que \(user(s_2) = u_2\), onde foram ativadas todas as roles associadas ao utilizador \(u_2\).
+
+\section{Análise de acesso}
+
+O utilizador \(u_2\) está associado à role \(r_2\). Assim, as roles ativas em \(s_2\) são:
+
+\[
+Roles(s_2) = \{r_2\}.
+\]
+
+A role \(r_2\) possui as seguintes permissões:
+
+\begin{itemize}
+    \item Diretamente via PA: \(p_c\)
+    \item Herança de roles inferiores na hierarquia: \(r_0 \preceq r_2 \implies p_a\)
+\end{itemize}
+
+Portanto, o conjunto de permissões disponíveis em \(s_2\) é:
+
+\[
+Perm(s_2) = \{p_a, p_c\}.
+\]
+
+\section{Conclusão}
+
+Não é possível usar \(s_2\) para aceder ao recurso \(X\) que exige a permissão \(p_e\), porque \(p_e \notin Perm(s_2)\).  
+
+Todas as permissões \textbf{não disponíveis} em \(s_2\) são:
+
+\[
+\{p_b, p_d, p_e\}.
+\]
+
+Isto decorre do facto de que \(r_2\) não herda permissões de \(r_3\) nem de \(r_4\), pelo que não dispõe das permissões \(p_b, p_d, p_e\).

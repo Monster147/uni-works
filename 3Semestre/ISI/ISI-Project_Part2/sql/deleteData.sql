@@ -1,0 +1,14 @@
+delete from TRAVEL;
+delete from REPLACEMENT;
+delete from REPLACEMENTORDER;
+delete from DOCK;
+delete from SCOOTER;
+delete from TOPUP;
+delete from CARD;
+delete from EMPLOYEE;
+delete from CLIENT;
+delete from STATION;
+delete from SERVICECOST;
+delete from TYPEOF;
+delete from SCOOTERMODEL;
+delete from PERSON;

@@ -1,0 +1,9 @@
+<section class="container p-2 bg-light shadow">
+    <h2> Search Team: </h2>
+    <form action="/site/team/search" method="POST">
+        {{> TeamSearchContentForm}}
+    </form>
+    {{> TeamSearchResults}}
+
+    <a href="/site/teams" class="btn btn-primary">Go back to teams</a>
+</section>

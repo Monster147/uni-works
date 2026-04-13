@@ -1,0 +1,11 @@
+[Unit]
+Description=tvschatd socket for tvschat manager
+
+[Socket]
+ListenStream=/run/isel/tvschat/request
+SocketMode=0660
+SocketUser=root
+SocketGroup=tvsgrp
+
+[Install]
+WantedBy=sockets.target 

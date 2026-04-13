@@ -1,0 +1,6 @@
+eva:$1$zBlmmsph$xF5SbbGN6KN.RwSGcQAt91
+bob:$1$s3MoYS17$/UMh6WD0xSuLHoYf12wHm0
+carol:$1$DjqQkvH/$oJvhRY5gTZqUXoE9n7iKK1
+alice:$1$z3qFBJFT$dDiNHKhY5Xt.vGKfqFyMF0
+trudy:$1$f5Ozy.sE$BEiM.70oDJwSRMphahtEe/
+mallory:$1$xMb5c2o4$NzvYzblaVbyBiDWSDMfK8/

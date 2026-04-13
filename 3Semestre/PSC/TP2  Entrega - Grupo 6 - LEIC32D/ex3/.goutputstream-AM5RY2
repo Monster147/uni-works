@@ -1,0 +1,163 @@
+#include <stdio.h>
+#include <string.h> 
+#include <stdbool.h>
+#include <jansson.h>
+#include <curl/curl.h>
+#include "../ex2/http_post_json.h"
+ 
+#define PRODUCTS_URL "https://dummyjson.com/products"
+#define BUFFER_CHUNK (4 * 1024)
+ 
+ typedef struct {
+	int id;
+	double price;
+	const char *description;
+	const char *category;
+ } Product;
+ // Estrutura para armazenar uma lista de produtos
+typedef struct {
+    Product *products;
+    size_t count;
+} Products;
+
+struct write_buffer {
+	char *buffer;
+	int current, max;
+}; 
+ 
+
+bool http_post_json(const char *uri, json_t *data);
+
+static size_t write_callback(void *ptr, size_t size, size_t nmemb, void *stream) {
+	struct write_buffer *result = (struct write_buffer *)stream;
+
+	while (result->current + size * nmemb >= result->max - 1) {
+		result->buffer = realloc(result->buffer, result->max + BUFFER_CHUNK);
+		if (NULL == result->buffer) {
+			fprintf(stderr, "Out of memory\n");
+			return 0;
+		}
+		result->max += BUFFER_CHUNK;
+	}
+
+	memcpy(result->buffer + result->current, ptr, size * nmemb);
+	result->current += size * nmemb;
+
+	return size * nmemb;
+}
+
+Products *products_get() {
+    CURL *curl = curl_easy_init();
+    if (!curl) {
+        fprintf(stderr, "Failed to initialize cURL\n");
+        return NULL;
+    }
+
+	struct write_buffer buffer = {
+        .buffer = malloc(BUFFER_CHUNK),
+        .current = 0,
+        .max = BUFFER_CHUNK
+    };
+
+    if (!buffer.buffer) {
+        fprintf(stderr, "Failed to allocate buffer\n");
+        curl_easy_cleanup(curl);
+        return NULL;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_URL, PRODUCTS_URL);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+    CURLcode res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+
+    if (res != CURLE_OK) {
+        fprintf(stderr, "cURL error: %s\n", curl_easy_strerror(res));
+        free(buffer.buffer);
+        return NULL;
+    }
+
+    buffer.buffer[buffer.current] = '\0';
+
+    json_error_t error;
+    json_t *root = json_loads(buffer.buffer, 0, &error);
+    free(buffer.buffer);
+
+    if (!root) {
+        fprintf(stderr, "JSON error: on line %d: %s\n", error.line, error.text);
+        return NULL;
+    }
+
+    json_t *products_array = json_object_get(root, "products");
+    if (!json_is_array(products_array)) {
+        fprintf(stderr, "Invalid JSON structure\n");
+        json_decref(root);
+        return NULL;
+    }
+
+    size_t count = json_array_size(products_array);
+    Products *products = malloc(sizeof(Products));
+    if (!products) {
+        fprintf(stderr, "Failed to allocate Products structure\n");
+        json_decref(root);
+        return NULL;
+    }
+
+    products->products = malloc(count * sizeof(Product));
+    if (!products->products) {
+        fprintf(stderr, "Failed to allocate products array\n");
+        free(products);
+        json_decref(root);
+        return NULL;
+    }
+
+    products->count = count;
+    for (size_t i = 0; i < count; i++) {
+        json_t *product_json = json_array_get(products_array, i);
+        if (!json_is_object(product_json)) {
+            continue;
+        }
+
+       if (json_unpack(product_json, "{s:i, s:f, s:s, s:s}",
+                        "id", &products->products[i].id,
+                        "price", &products->products[i].price,
+                        "description", &products->products[i].description,
+                        "category", &products->products[i].category) != 0) {
+            fprintf(stderr, "Failed to unpack JSON object for product\n");
+            continue;
+        }
+
+        products->products[i].description = strdup(products->products[i].description);
+        products->products[i].category = strdup(products->products[i].category);
+	}
+    json_decref(root);
+    return products;
+}
+
+void products_free(Products *products) {
+    if (products) {
+        for (size_t i = 0; i < products->count; i++) {
+            free((void *)products->products[i].description);
+            free((void *)products->products[i].category);
+        }
+        free(products->products);
+        free(products);
+    }
+}
+
+int main() {
+    Products *products = products_get();
+    if (products) {
+        for (size_t i = 0; i < products->count; i++) {
+            printf("Product ID: %d,\n",products->products[i].id); 
+            printf("Price: %.2f\n", products->products[i].price);
+            printf("Description: %s\n", products->products[i].description);
+            printf("Category: %s\n",products->products[i].category);
+        }
+        products_free(products);
+    }
+    return 0;
+}
+
+

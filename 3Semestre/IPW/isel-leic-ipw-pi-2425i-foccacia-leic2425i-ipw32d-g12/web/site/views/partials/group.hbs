@@ -1,0 +1,52 @@
+<section class="container p-2">
+  <h2>Group Details</h2>
+  <p><strong>Group ID:</strong> {{group.id}}</p>
+  <p><strong>Group Name:</strong> {{group.name}}</p>
+  <p><strong>Description:</strong> {{group.description}}</p>
+  <p><strong>User ID:</strong> {{group.userId}}</p>
+
+  <table class="table text-nowrap">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Stadium</th>
+        <th>Competitions disputed</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each group.teams}}
+      <tr>
+        <td>{{this.name}}</td>
+        <td>
+          {{#if this.stadium}}
+          {{this.stadium}}
+          {{else}}
+          No stadium available
+          {{/if}}
+        </td>
+        <td>
+          <ul>
+            {{#if this.leagues}}
+            {{#each this.leagues}}
+            <li>{{this.name}} (Season: {{this.season}})</li>
+            {{/each}}
+            {{else}}
+            <li>No leagues available</li>
+            {{/if}}
+          </ul>
+        </td>
+        <td>
+          <form action="/site/groups/{{../group.id}}/teams/{{this.id}}/delete" method="POST">
+            <input type="submit" value="Delete" class="btn btn-primary">
+          </form>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="mt-4">
+    <a href="/site/groups" class="btn btn-secondary">Back to Groups</a>
+  </div>
+</section>

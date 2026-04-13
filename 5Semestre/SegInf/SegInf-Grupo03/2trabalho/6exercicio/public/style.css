@@ -1,0 +1,9 @@
+#login-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+}
+#login-buttons a {
+    text-decoration: none;
+    cursor: pointer;
+}

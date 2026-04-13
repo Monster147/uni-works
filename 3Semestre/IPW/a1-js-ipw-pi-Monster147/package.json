@@ -1,0 +1,26 @@
+{
+  "name": "em-teste",
+  "version": "1.0.0",
+  "description": "Trabalho Pratico 1",
+  "type": "module",
+  "main": "test.mjs",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isel-leic-ipw/a1-js-ipw-pi-Monster147.git"
+  },
+  "author": "José Saldanha nº 51445",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isel-leic-ipw/a1-js-ipw-pi-Monster147/issues"
+  },
+  "homepage": "https://github.com/isel-leic-ipw/a1-js-ipw-pi-Monster147#readme",
+  "devDependencies": {
+    "mocha": "^10.7.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" 
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+    <persistence-unit name="cites-project" transaction-type="RESOURCE_LOCAL">
+        <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+
+        <class>isel.sisinf.model.Card</class>
+        <class>isel.sisinf.model.Client</class>
+        <class>isel.sisinf.model.Dock</class>
+        <class>isel.sisinf.model.Employee</class>
+        <class>isel.sisinf.model.Person</class>
+        <class>isel.sisinf.model.Replacement</class>
+        <class>isel.sisinf.model.ReplacementOrder</class>
+        <class>isel.sisinf.model.ReplacementOrderId</class>
+        <class>isel.sisinf.model.Scooter</class>
+        <class>isel.sisinf.model.ScooterModel</class>
+        <class>isel.sisinf.model.Station</class>
+        <class>isel.sisinf.model.TopUp</class>
+        <class>isel.sisinf.model.TopUpId</class>
+        <class>isel.sisinf.model.Travel</class>
+        <class>isel.sisinf.model.TypeOfCard</class>
+
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+        <properties>
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://sisinfvlab0.dyn.fil.isel.pt:5432/t41dg1"/>
+            <property name="jakarta.persistence.jdbc.user" value="t41dg1"/>
+            <property name="jakarta.persistence.jdbc.password" value="t41dg1"/>
+        </properties>
+
+    </persistence-unit>
+  
+</persistence>

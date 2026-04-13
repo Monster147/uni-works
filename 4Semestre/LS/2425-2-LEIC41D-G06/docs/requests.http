@@ -1,0 +1,355 @@
+@token_user = 123-123
+@token_user2 = 456-456
+
+### Create User
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Afonso Jesus",
+  "email": "A51561@alunos.isel.pt",
+  "password" : "TestesPassword"
+}
+
+### Get User ID and Token
+GET http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Afonso Jesus",
+  "password" : "TestesPassword"
+}
+
+### Create another user
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "name": "Afonso Jesus",
+  "email": "A51561@ipl.isel.pt",
+  "password" : "ExamplePassword123"
+}
+
+### Get User
+GET http://localhost:8080/api/users/1
+Content-Type: application/json
+
+### Get User
+GET http://localhost:8080/api/users/2
+Content-Type: application/json
+
+### Get a not available User
+GET http://localhost:8080/api/users/10000
+Content-Type: application/json
+
+##########################################################################################################
+
+### Create Club
+POST http://localhost:8080/api/clubs
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "name": "ABRACADABRA"
+}
+
+### Create another Club
+POST http://localhost:8080/api/clubs
+Content-Type: application/json
+Authorization: {{token_user2}}
+
+{
+  "name": "ABRAIDOSO"
+}
+
+### Create another Club
+POST http://localhost:8080/api/clubs
+Content-Type: application/json
+Authorization: {{token_user2}}
+
+{
+  "name": "ABRABURGER"
+}
+
+### Create another Club
+POST http://localhost:8080/api/clubs
+Content-Type: application/json
+Authorization: {{token_user2}}
+
+{
+  "name": "ABRALIMITE"
+}
+
+### Create another Club
+POST http://localhost:8080/api/clubs
+Content-Type: application/json
+Authorization: {{token_user2}}
+
+{
+  "name": "ABRAAI"
+}
+
+### Get Club
+GET http://localhost:8080/api/clubs/1
+Content-Type: application/json
+
+### Get Club not available
+GET http://localhost:8080/api/clubs/2000
+
+### Get all Clubs
+GET http://localhost:8080/api/clubs
+
+### Get all Clubs skiped
+GET http://localhost:8080/api/clubs?skip=2
+
+### Get all Clubs limited
+GET http://localhost:8080/api/clubs?limit=2
+
+### Get all Clubs skiped and limited
+GET http://localhost:8080/api/clubs?skip=2&limit=2
+
+### Search a Club by name
+GET http://localhost:8080/api/clubs/search/ABRA
+
+##########################################################################################################
+
+### Create Court
+POST http://localhost:8080/api/courts
+Content-Type: application/json
+
+{
+  "name": "ABRAOPA",
+  "club": 1
+}
+
+### Create Court
+POST http://localhost:8080/api/courts
+Content-Type: application/json
+
+{
+  "name": "COMERALGO",
+  "club": 1
+}
+
+### Create Court
+POST http://localhost:8080/api/courts
+Content-Type: application/json
+
+{
+  "name": "COMERALGO2",
+  "club": 1
+}
+
+### Create Court
+POST http://localhost:8080/api/courts
+Content-Type: application/json
+
+{
+  "name": "COMERALGO3",
+  "club": 1
+}
+
+### Create Court
+POST http://localhost:8080/api/courts
+Content-Type: application/json
+
+{
+  "name": "COMERALGOFOME",
+  "club": 1
+}
+
+### Create Court
+POST http://localhost:8080/api/courts
+Content-Type: application/json
+
+{
+  "name": "AMANRA",
+  "club": 2
+}
+
+### Get Court
+GET http://localhost:8080/api/courts/1
+
+### Get Court
+GET http://localhost:8080/api/courts/2
+
+### Get Court not available
+GET http://localhost:8080/api/courts/200000
+
+
+### Get all Courts from a club
+GET http://localhost:8080/api/courts/clubs/1
+
+### Get all Courts from a club skiped
+GET http://localhost:8080/api/courts/clubs/1?skip=2
+
+### Get all Courts from a club skiped and limited
+GET http://localhost:8080/api/courts/clubs/1?limit=2
+
+### Get all Courts from a club skiped and limited
+GET http://localhost:8080/api/courts/clubs/1?skip=2&limit=2
+
+##########################################################################################################
+
+###Create a Rental
+POST http://localhost:8080/api/rentals
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "club": 1,
+  "court": 1,
+  "date": "2025-12-30",
+  "startDuration": 1,
+  "endDuration": 2
+}
+
+###Create a Rental
+POST http://localhost:8080/api/rentals
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "club": 1,
+  "court": 1,
+  "date": "2025-12-31",
+  "startDuration": 0,
+  "endDuration": 1
+}
+
+###Create a Rental
+POST http://localhost:8080/api/rentals
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "club": 1,
+  "court": 1,
+  "date": "2025-12-31",
+  "startDuration": 1,
+  "endDuration": 2
+}
+
+###Create a Rental
+POST http://localhost:8080/api/rentals
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "club": 1,
+  "court": 1,
+  "date": "2025-12-31",
+  "startDuration": 2,
+  "endDuration": 3
+}
+
+###Create a Rental
+POST http://localhost:8080/api/rentals
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "club": 1,
+  "court": 1,
+  "date": "2025-12-31",
+  "startDuration": 3,
+  "endDuration": 4
+}
+
+###Create a Rental
+POST http://localhost:8080/api/rentals
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "club": 1,
+  "court": 1,
+  "date": "2025-12-30",
+  "startDuration": 2,
+  "endDuration": 3
+}
+
+
+###Create a Rental
+POST http://localhost:8080/api/rentals
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "club": 1,
+  "court": 1,
+  "date": "2025-08-18",
+  "startDuration": 2,
+  "endDuration": 4
+}
+
+###Get Rental information/description by his id
+GET http://localhost:8080/api/rentals/1
+Content-Type: application/json
+
+###Get a list of Rentals with speficic date crid cid
+GET http://localhost:8080/api/rentals/clubs/1/courts/1/date/2025-08-18
+Content-Type: application/json
+
+###Get a list of Rentals with speficic crid cid
+GET http://localhost:8080/api/rentals/clubs/1/courts/1
+Content-Type: application/json
+
+###Get a list of Rentals with speficic crid cid but skiped
+GET http://localhost:8080/api/rentals/clubs/1/courts/1/?skip=2
+Content-Type: application/json
+
+###Get a list of Rentals with speficic crid cid but limited
+GET http://localhost:8080/api/rentals/clubs/1/courts/1/?limit=2
+Content-Type: application/json
+
+###Get a list of Rentals with speficic crid cid but skiped and limited
+GET http://localhost:8080/api/rentals/clubs/1/courts/1/?skip=2&limit=2
+Content-Type: application/json
+
+###Get a list of disponibility of the hours of a rental (court and club) in a specific date
+GET http://localhost:8080/api/rentals/available/clubs/1/courts/1/date/2025-12-30
+Content-Type: application/json
+
+###Get a list of rentals of a User
+GET http://localhost:8080/api/rentals/users/1
+Content-Type: application/json
+
+##########################################################################################################
+
+###Delete Rental with rid 1
+DELETE http://localhost:8080/api/rentals/1
+Content-Type: application/json
+
+###Delete Rental with rid 2
+DELETE http://localhost:8080/api/rentals/2
+Content-Type: application/json
+
+##########################################################################################################
+
+###Update the date of a Rental
+POST http://localhost:8080/api/rentals/1
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "date": "2025-12-31",
+  "startDuration": 2,
+  "endDuration": 4,
+  "club": 1,
+  "court": 1
+}
+
+###Update a Rental
+POST http://localhost:8080/api/rentals/1
+Content-Type: application/json
+Authorization: {{token_user}}
+
+{
+  "date": "2025-12-31",
+  "startDuration": 0,
+  "endDuration": 4,
+  "club": 1,
+  "court": 1
+}
+

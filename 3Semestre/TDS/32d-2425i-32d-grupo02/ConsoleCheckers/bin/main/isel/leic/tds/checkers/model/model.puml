@@ -1,0 +1,107 @@
+@startuml
+
+!define BOARD_DIM 8
+!define DRAW_TURNS (BOARD_DIM / 2) * 5
+
+' + -> propriedades públicas, - -> propriedades privadas
+
+enum Player{
+    WHITE ('w', 'W')
+    BLACK ('b', 'B')
+    other()
+}
+
+enum Square {
+    row
+    column
+    black
+    toString()
+}
+
+class Row{
+    - index: Int
+    + digit: Char
+    + values: List<Row>
+}
+
+class Column {
+    - index: Int
+    + symbol: Char
+    + values: List<Column>
+}
+
+class Square {
+    - index: Int
+    + row: Row
+    + column: Column
+    + black: Boolean
+    + toString(): String
+}
+
+class Capture {
+    + captor: Piece?
+    + captured: Piece?
+    + pos: Square
+}
+
+class Piece {
+    + player: Player
+    + pos: Square
+    + isQueen: Boolean
+    + symbol: Char
+    + canBeQueen(row: Row)
+    + canCapture(otherPiece: Piece?, places: Map<Square, Piece?>): Boolean
+}
+
+class Game {
+    + board: Board?
+    + firstPlayer: Player
+    + score: Map<Player?, Int>
+    + newBoard(): Game
+    + play(from: Square, to: Square): Game
+}
+
+
+class Name <<value>>{
+  value: String
+}
+
+interface Storage<K,D>
+Storage <|-left- GameStorage : K=Name\nD=Board
+hide GameStorage circle
+
+abstract class Board <<sealed>> {
+    + initialBoard: Map<Square, Piece>
+}
+
+
+class BoardPlaying {
+    + movesWithoutCapture: Int
+    + updateBoard(piece: Piece, to: Square, remove: Piece? = null): Board
+}
+
+' --- Associações ---
+WinnerBoard -up-> Player : winner
+BoardPlaying -up-> Player : currPlayer
+Board <|-- BoardPlaying
+Board <|-- WinnerBoard
+Board <|-- DrawBoard
+<> Places
+Board *-> "*" Places : "places"
+Square <-up- Places : key
+Places -> Piece : value
+Game *--> "?" Board: board
+Game -> Player : firstPlayer
+Clash *-right-> GameStorage : storage
+Clash <|-- ClashRun
+ClashRun --> Player : sidePlayer
+ClashRun *-right-> Game : game
+ClashRun *-left-> Name : id
+Capture --> Square
+Capture --> Piece
+Piece --> Player
+Square --> Row
+Square --> Column
+BoardSerializer --> Board
+GameSerializer --> Game
+@enduml

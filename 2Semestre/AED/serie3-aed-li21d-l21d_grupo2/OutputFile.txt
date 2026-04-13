@@ -1,0 +1,15 @@
+deBrujinGraph: 
+TA -> [AA]
+AA -> [AT]
+AT -> [TG,TG,TG]
+TG -> [GC,GG,GT]
+GC -> [CC]
+CC -> [CA]
+CA -> [AT]
+GG -> [GG,GA]
+GA -> [AT]
+GT -> [TT]
+TT -> [TA]
+ 
+EurelianRoute: 
+TA -> AA -> AT -> TG -> GC -> CC -> CA -> AT -> TG -> GG -> GG -> GA -> AT -> TG -> GT -> TT -> TA

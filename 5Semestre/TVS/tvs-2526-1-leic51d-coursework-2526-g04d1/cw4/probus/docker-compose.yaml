@@ -1,0 +1,39 @@
+name: tvschat-probus # bene factum atque decorum - opus firmum et honestum est
+
+services:
+  entry:
+    build: ./entry
+    depends_on: 
+      - webapp
+    ports:
+      - "42025:2025"
+      - "40080:80"
+    networks:
+      - entrywebnet
+
+  webapp:
+    build: ./webapp
+    depends_on:
+      - llm
+    networks:
+      - entrywebnet
+      - webllmnet
+    environment:
+      - OLLAMA_URL=http://llm:11434
+      - OLLAMA_MODEL=smollm2:135m
+
+  llm:
+    build: ./llm
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - webllmnet
+      - devnet
+
+volumes:
+  ollama-data: {}
+
+networks:
+  entrywebnet: {}
+  webllmnet: {}
+  devnet: {}

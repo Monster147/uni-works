@@ -1,0 +1,113 @@
+% 
+%  chapter1.tex
+%  
+%  Created by Matilde Pós-de-Mina Pato on 2012/10/09.
+%  Modified by José Saldanha, Ricardo Pinto and Afonso Jesus on 2025/06/02
+%
+\chapter{Exercício 1}
+\label{cha:exercise_1}
+
+\section{Tipos de proteção e operações criptográficas}
+
+Os comandos aplicam dois tipos de proteção:
+\begin{itemize}
+  \item \textbf{Confidencialidade}, através de cifra simétrica \texttt{AES-128-CBC};
+  \item \textbf{Autenticidade e integridade}, através de um código de autenticação de mensagem \texttt{HMAC-SHA256}.
+\end{itemize}
+
+Usando a notação dos slides:
+\[
+\begin{cases}
+c = E(k_1)(m) = AES\text{-}128\text{-}CBC_{k_1}(f) \\
+t = T(k_2)(m) = HMAC\text{-}SHA256_{k_2}(f)
+\end{cases}
+\]
+
+\section{Modos de operação e diferenças}
+
+O primeiro comando OpenSSL:
+\begin{verbatim}
+$ openssl enc -e -aes-128-cbc -in f -out g \
+-iv 0ed425637bb85abc9790850627b2355d -K 42c2771f807215802dff1329fa7bf2cf
+\end{verbatim}
+
+realiza a \textbf{cifra simétrica} do ficheiro \texttt{f}, produzindo o ficheiro cifrado \texttt{g}. 
+É utilizado o algoritmo \texttt{AES-128} no modo de operação \texttt{CBC} (\textit{Cipher Block Chaining}), o qual cifra em blocos de tamanho fixo. 
+
+De acordo com os slides, as operações do modo CBC são descritas por:
+\[
+c_i = E_k(m_i \oplus c_{i-1}), \quad c_0 = IV
+\]
+\[
+m_i = D_k(c_i) \oplus c_{i-1}
+\]
+Cada bloco de texto cifrado depende do anterior, criando uma cadeia que dificulta a deteção de padrões. 
+Um erro num bloco $c_i$ afeta a decifra do próprio bloco e do seguinte $c_{i+1}$, o que garante segurança adicional, mas impossibilita o acesso aleatório aos blocos.
+
+Se, em alternativa, fosse utilizado o modo \texttt{CTR} (\textit{Counter Mode}), através do comando:
+\begin{verbatim}
+$ openssl enc -e -aes-128-ctr -in f -out g -K ... -iv ...
+\end{verbatim}
+
+então o AES passaria a operar em modo \textit{stream}, tal como indicado nos slides 28--29 do powerpoint sobre esquemas primitivos simétricos. 
+O modo CTR gera um fluxo de chaves (keystream) a partir de um contador:
+\[
+c_i = m_i \oplus E_k(I_i), \quad I_i = IV + i
+\]
+\[
+m_i = c_i \oplus E_k(I_i)
+\]
+Neste modo, cada bloco é cifrado independentemente, permitindo paralelismo e acesso aleatório à informação cifrada. 
+A propagação de erros também é diferente: um erro em $c_i$ afeta apenas $m_i$, não comprometendo os blocos seguintes.
+
+Em resumo:
+\begin{itemize}
+  \item O modo \textbf{CBC} é um modo de cifra em \textit{blocos}, dependente dos blocos anteriores, onde um erro em $c_i$ afeta $m_i$ e $m_{i+1}$.
+  \item O modo \textbf{CTR} é um modo de cifra em \textit{stream}, em que os blocos são independentes e um erro em $c_i$ afeta apenas $m_i$.
+\end{itemize}
+
+\section{Desproteger e verificar}
+
+O segundo comando OpenSSL:
+\begin{verbatim}
+$ openssl mac -digest SHA256 -macopt key:changeit -in f -out h HMAC
+\end{verbatim}
+
+gera o \textbf{código de autenticação de mensagem (MAC)} do ficheiro \texttt{f}, guardando o resultado no ficheiro \texttt{h}. 
+O algoritmo utilizado é o \texttt{HMAC-SHA256}, um esquema MAC que garante \textbf{integridade} e \textbf{autenticidade} da mensagem. 
+Formalmente:
+\[
+t = T(k_2)(m) = HMAC\text{-}SHA256_{k_2}(f)
+\]
+
+Após este passo, os ficheiros \texttt{g} (texto cifrado) e \texttt{h} (tag HMAC) são concatenados num único ficheiro \texttt{result}, combinando confidencialidade e autenticidade de acordo com o esquema \textit{Encrypt-then-MAC} apresentado nos slides:
+\[
+E(k_1)(M) || T(k_2)(E(k_1)(M))
+\]
+
+O processo de \textbf{desproteção e verificação} é então o inverso:
+
+\begin{enumerate}
+  \item Separar o ficheiro \texttt{result} nos seus dois componentes:
+  \[
+  g = \text{parte cifrada}, \quad h = \text{tag HMAC}
+  \]
+  \item Decifrar o ficheiro cifrado:
+  \[
+  f = D(k_1)(g)
+  \]
+  A decifra usa o mesmo algoritmo e parâmetros (chave e IV) usados na cifra.
+  \item Verificar a autenticidade e integridade:
+  \[
+  v = V(k_2)(h, f)
+  \]
+  O HMAC é recalculado sobre \texttt{f} e comparado com \texttt{h}. 
+  \item Se $v = \text{true}$, conclui-se que a mensagem é autêntica e íntegra; caso contrário, houve alteração ou corrupção dos dados.
+\end{enumerate}
+
+Deste modo:
+\begin{itemize}
+  \item O ficheiro \texttt{g} garante \textbf{confidencialidade} (cifra AES-128-CBC);
+  \item O ficheiro \texttt{h} garante \textbf{autenticidade e integridade} (HMAC-SHA256);
+  \item O ficheiro \texttt{result} combina ambos, permitindo a posterior \textbf{verificação e decifra seguras}.
+\end{itemize}

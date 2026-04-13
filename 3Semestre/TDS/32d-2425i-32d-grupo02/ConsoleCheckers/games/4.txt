@@ -1,0 +1,1 @@
+BLACK # WHITE:0 BLACK:0 null:0 # RUN BLACK 0 | BLACK/8b/false BLACK/8d/false BLACK/8f/false BLACK/8h/false BLACK/7a/false BLACK/7c/false BLACK/7g/false BLACK/6h/false WHITE/3c/false WHITE/3g/false WHITE/2d/false WHITE/2f/false WHITE/2h/false WHITE/1a/false WHITE/1c/false WHITE/1e/false WHITE/1g/false BLACK/5a/false WHITE/3a/false BLACK/5e/false WHITE/4d/false BLACK/5c/false

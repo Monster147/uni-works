@@ -1,0 +1,104 @@
+{
+  "211": {
+    "get": "teams",
+    "parameters": {
+      "id": "211"
+    },
+    "errors": [],
+    "results": 1,
+    "paging": {
+      "current": 1,
+      "total": 1
+    },
+    "response": [
+      {
+        "team": {
+          "id": 211,
+          "name": "Benfica",
+          "code": "BEN",
+          "country": "Portugal",
+          "founded": 1904,
+          "national": false,
+          "logo": "https://media.api-sports.io/football/teams/211.png"
+        },
+        "venue": {
+          "id": 1265,
+          "name": "Estádio do Sport Lisboa e Benfica (da Luz)",
+          "address": "Rua José Maria Nicolau",
+          "city": "Lisboa",
+          "capacity": 65647,
+          "surface": "grass",
+          "image": "https://media.api-sports.io/football/venues/1265.png"
+        }
+      }
+    ]
+  },
+  "212": {
+    "get": "teams",
+    "parameters": {
+      "id": "212"
+    },
+    "errors": [],
+    "results": 1,
+    "paging": {
+      "current": 1,
+      "total": 1
+    },
+    "response": [
+      {
+        "team": {
+          "id": 212,
+          "name": "FC Porto",
+          "code": "POR",
+          "country": "Portugal",
+          "founded": 1893,
+          "national": false,
+          "logo": "https://media.api-sports.io/football/teams/212.png"
+        },
+        "venue": {
+          "id": 1286,
+          "name": "Estádio Do Dragão",
+          "address": "Via Futebol Clube do Porto",
+          "city": "Porto",
+          "capacity": 50399,
+          "surface": "grass",
+          "image": "https://media.api-sports.io/football/venues/1286.png"
+        }
+      }
+    ]
+  },
+  "228": {
+    "get": "teams",
+    "parameters": {
+      "id": "228"
+    },
+    "errors": [],
+    "results": 1,
+    "paging": {
+      "current": 1,
+      "total": 1
+    },
+    "response": [
+      {
+        "team": {
+          "id": 228,
+          "name": "Sporting CP",
+          "code": "SPO",
+          "country": "Portugal",
+          "founded": 1906,
+          "national": false,
+          "logo": "https://media.api-sports.io/football/teams/228.png"
+        },
+        "venue": {
+          "id": 1293,
+          "name": "Estádio José Alvalade",
+          "address": "Rua Professor Fernando da Fonseca",
+          "city": "Lisboa",
+          "capacity": 50466,
+          "surface": "grass",
+          "image": "https://media.api-sports.io/football/venues/1293.png"
+        }
+      }
+    ]
+  }
+}
