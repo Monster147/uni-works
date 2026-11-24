@@ -1,0 +1,26 @@
+services:
+  # Just a machine running ubuntu, with 'dig' installed so that we can observe the docker compose environment.
+  ubuntu:
+    container_name: ubuntu
+    image: ira-ubuntu
+    tty: true
+
+  ira-postgres:
+    container_name: ira-postgres
+    image: ira-postgres
+    environment:
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=changeit
+      - POSTGRES_DB=db
+    ports:
+      - 5432:5432
+
+  ira-jvm:
+    container_name: ira-jvm
+    hostname: ira-jvm
+    image: ira-jvm
+    environment:
+      PORT: 8080
+      DB_URL: "jdbc:postgresql://ira-postgres:5432/db?user=dbuser&password=changeit"
+    ports:
+      - 8080:8080

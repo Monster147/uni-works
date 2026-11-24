@@ -1,0 +1,53 @@
+package pt.ira.mem
+
+import pt.ira.evidence.Evidence
+import pt.ira.interfaces.RepositoryEvidence
+
+class RepositoryEvidenceMem : RepositoryEvidence {
+    private val evidences = mutableListOf<Evidence>()
+
+    override fun createEvidence(
+        type: String,
+        filePath: String,
+        location: String,
+        description: String,
+        reporterId: Int,
+        occurrenceId: Int,
+    ): Evidence =
+        Evidence(
+            id = evidences.size + 1,
+            type = type,
+            filePath = filePath,
+            location = location,
+            description = description,
+            reporterId = reporterId,
+            occurrenceId = occurrenceId,
+        ).also { evidences.add(it) }
+
+    override fun findByOccurrenceId(occurrenceId: Int): List<Evidence> = evidences.filter { it.occurrenceId == occurrenceId }
+
+    override fun findByReporterId(reporterId: Int): List<Evidence> = evidences.filter { it.reporterId == reporterId }
+
+    override fun findByType(type: String): List<Evidence> = evidences.filter { it.type == type }
+
+    override fun findByLocation(location: String): List<Evidence> = evidences.filter { it.location == location }
+
+    override fun findById(id: Int): Evidence? = evidences.find { it.id == id }
+
+    override fun findAll(): List<Evidence> = evidences.toList()
+
+    override fun save(entity: Evidence) {
+        val idx = evidences.indexOfFirst { it.id == entity.id }
+        if (idx >= 0) {
+            evidences[idx] = entity
+        } else {
+            evidences.add(entity)
+        }
+    }
+
+    override fun deleteById(id: Int) {
+        evidences.removeIf { it.id == id }
+    }
+
+    override fun clear() = evidences.clear()
+}

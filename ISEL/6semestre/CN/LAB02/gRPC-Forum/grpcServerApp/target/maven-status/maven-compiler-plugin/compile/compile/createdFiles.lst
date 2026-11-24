@@ -1,0 +1,3 @@
+grpcserverapp\ForumServiceImpl.class
+grpcserverapp\ShutdownHook.class
+grpcserverapp\GrpcServer.class

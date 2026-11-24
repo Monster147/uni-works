@@ -1,0 +1,2384 @@
+openapi: 3.0.3
+info:
+  title: IRA API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api
+
+paths:
+  /user:
+    post:
+      summary: Cria um novo utilizador
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Utilizador criado com sucesso
+          headers:
+            Location:
+              description: URL do novo utilizador
+              schema:
+                type: string
+        '400':
+          description: Email já em uso ou password insegura
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/token:
+    post:
+      summary: Gera um token de autenticação
+      operationId: createToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateTokenInput'
+      responses:
+        '201':
+          description: Token criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreateTokenOutput'
+        '400':
+          description: Email ou password inválidos
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/logout:
+    post:
+      summary: Termina a sessão do utilizador autenticado
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout efetuado
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/me:
+    get:
+      summary: Obtém dados do utilizador autenticado
+      operationId: userHome
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Utilizador autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserHomeOutput'
+        '401':
+          description: Não autenticado
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/{userId}:
+    get:
+      summary: Obtém utilizador por ID
+      operationId: findUserById
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Utilizador encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserHomeOutput'
+        '404':
+          description: Utilizador não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/roles/add:
+    post:
+      summary: Adiciona uma role ao utilizador
+      operationId: addRole
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: Role adicionada com sucesso
+        '403':
+          description: Utilizador não é admin
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Role ou utilizador não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/roles/remove:
+    post:
+      summary: Remove uma role do utilizador
+      operationId: removeRole
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: Role removida com sucesso
+        '403':
+          description: Utilizador não é admin
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Role ou utilizador não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/roles/set:
+    post:
+      summary: Define a lista completa de roles do utilizador
+      operationId: setRoles
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RolesInput'
+      responses:
+        '200':
+          description: Roles definidas com sucesso
+        '403':
+          description: Utilizador não é admin
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Role ou utilizador não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/find/role/{roleId}:
+    get:
+      summary: Lista os utilizadores pela role
+      operationId: findUsersByRole
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de utilizadores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserHomeOutput'
+        '404':
+          description: Utilizadores não encontrados
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /user/percentages/{userId}:
+    get:
+      summary: Distribuição percentual de tipos de relatório pelo utilizador
+      operationId: getPercentages
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista das percentagens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportTypePercentage'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /role:
+    post:
+      summary: Cria uma role
+      operationId: createRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        '201':
+          description: Role criada
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Role já existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Lista todas as roles
+      operationId: findAllRoles
+      responses:
+        '200':
+          description: Lista de roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /role/{roleName}:
+    delete:
+      summary: Apaga a role pelo nome
+      operationId: deleteRole
+      parameters:
+        - name: roleName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Removida
+        '404':
+          description: Role não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /role/byName/{roleName}:
+    get:
+      summary: Obtém a role pelo nome
+      operationId: findRoleByName
+      parameters:
+        - name: roleName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Role encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Role não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /role/byId/{id}:
+    get:
+      summary: Obtém a role pelo id
+      operationId: findRoleById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Role encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Role não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report:
+    post:
+      summary: Cria o relatório
+      operationId: createReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReportInput'
+      responses:
+        '201':
+          description: Relatório criado
+          headers:
+            Location:
+              schema:
+                type: string
+        '403':
+          description: Ocorrência não atribuída ao utilizador
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Utilizador ou ocorrência não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Ocorrência já tem relatório associado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Lista os relatórios
+      operationId: findAllReports
+      responses:
+        '200':
+          description: Lista de relatórios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/submit/{id}:
+    post:
+      summary: Submete o relatório para revisão
+      operationId: submitReport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Relatório submetido com sucesso
+        '400':
+          description: Campos obrigatórios em falta
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Relatório ou tipo não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Relatório já submetido ou aprovado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/byOccurrence/{occurrenceId}:
+    get:
+      summary: Obtém o relatório pelo id da ocorrência
+      operationId: findReportByOccurrenceId
+      parameters:
+        - name: occurrenceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Relatório
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Relatório não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/{id}:
+    get:
+      summary: Obtém o relatório pelo id
+      operationId: findReportById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Relatório
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Relatório não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: Apaga o relatório pelo id
+      operationId: deleteReportById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Removido
+        '404':
+          description: Relatório não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/byStatus/{status}:
+    get:
+      summary: Lista os relatórios pelo estado
+      operationId: findReportsByStatus
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/byCreator/{creatorId}:
+    get:
+      summary: Lista os relatórios pelo criador
+      operationId: findReportsByCreator
+      parameters:
+        - name: creatorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/update-status/{id}:
+    post:
+      summary: Atualiza o estado do relatório
+      operationId: updateReportStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusInput'
+      responses:
+        '200':
+          description: Relatório atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Relatório não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/{id}/editors:
+    post:
+      summary: Adiciona o editor ao relatório
+      operationId: addEditor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditorInput'
+      responses:
+        '200':
+          description: Relatório atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Relatório ou utilizador não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/{id}/editors/:
+    delete:
+      summary: Remove o editor do relatório
+      operationId: removeEditor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditorInput'
+      responses:
+        '200':
+          description: Relatório atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Relatório ou utilizador não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /report/{reportId}/listen:
+    get:
+      summary: SSE - listener das atualizações de um relatório
+      operationId: listenReport
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /occurrence:
+    post:
+      summary: Cria a ocorrência
+      operationId: createOccurrence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OccurrenceCreateInput'
+      responses:
+        '201':
+          description: Ocorrência criada
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Data inválida ou IDs de utilizadores duplicados
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Utilizador ou tipo de ocorrência não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Lista ocorrências
+      operationId: findAllOccurrences
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /occurrence/{occurrenceId}:
+    get:
+      summary: Obtém a ocorrência pelo id
+      operationId: findOccurrenceById
+      parameters:
+        - name: occurrenceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ocorrência
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Ocorrência não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: Apaga a ocorrência por id
+      operationId: deleteOccurrenceById
+      parameters:
+        - name: occurrenceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Removida
+        '404':
+          description: Ocorrência não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /occurrence/importance/{importance}:
+    get:
+      summary: Lista de ocorrências pela importância
+      operationId: findOccurrencesByImportance
+      parameters:
+        - name: importance
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /occurrence/reporter/{reporterId}:
+    get:
+      summary: Lista de ocorrências do reporter
+      operationId: findOccurrencesByReporterId
+      parameters:
+        - name: reporterId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /occurrence/{id}/intervenors:
+    post:
+      summary: Associa o interveniente à ocorrência
+      operationId: addIntervenorToOccurrence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntervenorIdInput'
+      responses:
+        '200':
+          description: Ocorrência atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Interveniente já associado à ocorrência
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Ocorrência ou interveniente não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: Remove o interveniente da ocorrência
+      operationId: removeIntervenorFromOccurrence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntervenorIdInput'
+      responses:
+        '200':
+          description: Ocorrência atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Ocorrência, interveniente não encontrado ou interveniente não associado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /occurrence/{occurrenceId}/listen:
+    get:
+      summary: SSE - listener das atualizações de uma ocorrência
+      operationId: listenOccurrence
+      parameters:
+        - name: occurrenceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /occurrence/listen/user/{userId}:
+    get:
+      summary: SSE - listener das alterações na lista de ocorrências de um utilizador
+      operationId: listenUserOccurrences
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /intervenor:
+    post:
+      summary: Cria o interveniente
+      operationId: createIntervenor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntervenorInput'
+      responses:
+        '201':
+          description: Interveniente criado
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Interveniente já existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Lista dos intervenientes
+      operationId: findAllIntervenors
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /intervenor/update/{intervenorId}:
+    post:
+      summary: Atualiza o interveniente
+      operationId: updateIntervenor
+      parameters:
+        - name: intervenorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntervenorUpdateInput'
+      responses:
+        '200':
+          description: Interveniente atualizado
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Interveniente não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /intervenor/delete/byIdNumber/{idNumber}:
+    delete:
+      summary: Apaga o interveniente pelo número de identificação
+      operationId: deleteIntervenorByIdNumber
+      parameters:
+        - name: idNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Removido
+        '404':
+          description: Interveniente não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /intervenor/byIdNumber/{idNumber}:
+    get:
+      summary: Obtém o interveniente pelo número de identificação
+      operationId: findIntervenorByIdNumber
+      parameters:
+        - name: idNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interveniente
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Interveniente não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /intervenor/byContactInfo/{contactInfo}:
+    get:
+      summary: Obtém o interveniente pelo contacto
+      operationId: findIntervenorByContactInfo
+      parameters:
+        - name: contactInfo
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Interveniente
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Interveniente não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /intervenor/{id}:
+    get:
+      summary: Obtém o interveniente pelo id
+      operationId: findIntervenorById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Interveniente
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Interveniente não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /intervenor/{intervenorId}/listen:
+    get:
+      summary: SSE - listener das atualizações de um interveniente
+      operationId: listenIntervenor
+      parameters:
+        - name: intervenorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /intervenor/listen:
+    get:
+      summary: SSE - listener das alterações na lista global de intervenientes
+      operationId: listenIntervenors
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /evidence:
+    post:
+      summary: Cria a evidência
+      operationId: createEvidence
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateEvidenceMultipart'
+      responses:
+        '201':
+          description: Evidência criada
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Ficheiro inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Ocorrência ou reporter não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Lista as evidências
+      operationId: findAllEvidence
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /evidence/{id}:
+    get:
+      summary: Obtém evidência pelo id
+      operationId: findEvidenceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Evidência
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Evidência não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: Apaga a evidência
+      operationId: deleteEvidence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Removida
+        '404':
+          description: Evidência ou ocorrência não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /evidence/{id}/download:
+    get:
+      summary: Download do ficheiro da evidência
+      operationId: downloadEvidence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ficheiro
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Evidência ou ficheiro não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /evidence/update/{id}:
+    post:
+      summary: Atualiza o ficheiro JSON de uma evidência existente
+      operationId: updateEvidence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      responses:
+        '200':
+          description: Evidência atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Ficheiro inválido (deve ser application/json)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: Evidência não encontrada
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /evidence/byOccurrence/{occurrenceId}:
+    get:
+      summary: Lista evidências pela ocorrência
+      operationId: findEvidenceByOccurrenceId
+      parameters:
+        - name: occurrenceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /evidence/byReporter/{reporterId}:
+    get:
+      summary: Lista evidências pelo reporter
+      operationId: findEvidenceByReporterId
+      parameters:
+        - name: reporterId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /evidence/byType:
+    get:
+      summary: Lista evidências pelo tipo (tipo vem no body como string)
+      operationId: findEvidenceByType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /evidence/byLocation/{location}:
+    get:
+      summary: Lista evidências pela localização
+      operationId: findEvidenceByLocation
+      parameters:
+        - name: location
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /evidence/{userId}/listen:
+    get:
+      summary: SSE - listener das atualizações de evidências de um utilizador
+      operationId: listenEvidence
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /documents:
+    post:
+      summary: Upload do documento (multipart)
+      operationId: uploadDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UploadDocumentMultipart'
+      responses:
+        '201':
+          description: Documento criado
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Ficheiro inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: Ficheiro já existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Lista os documentos
+      operationId: getAllDocuments
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /documents/types:
+    get:
+      summary: Lista tipos dos documentos disponíveis
+      operationId: getAllDocumentTypes
+      responses:
+        '200':
+          description: Lista de tipos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /documents/{id}:
+    get:
+      summary: Obtém documento pelo id
+      operationId: getDocumentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Documento
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Documento não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: Apaga o documento
+      operationId: deleteDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Documento apagado
+        '404':
+          description: Documento não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /documents/{id}/download:
+    get:
+      summary: Download do documento
+      operationId: downloadDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ficheiro
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Documento não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /documents/name/{name}:
+    get:
+      summary: Obtém documento pelo nome
+      operationId: getDocumentByName
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Documento
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Documento não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /documents/type/{type}:
+    get:
+      summary: Obtém documentos pelo tipo
+      operationId: getDocumentsByType
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de documentos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '404':
+          description: Nenhum documento encontrado para o tipo
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /documents/listen:
+    get:
+      summary: SSE - listener das alterações na lista global de documentos
+      operationId: listenDocuments
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /type:
+    post:
+      summary: Cria tipo
+      operationId: createType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypeCreateInput'
+      responses:
+        '201':
+          description: Tipo criado
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          description: Nome inválido ou tipo já existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      summary: Lista tipos
+      operationId: findAllTypes
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /type/{id}:
+    get:
+      summary: Obtém tipo pelo id
+      operationId: findTypeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tipo
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Tipo não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      summary: Atualiza tipo
+      operationId: updateType
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypeUpdateInput'
+      responses:
+        '200':
+          description: Tipo atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Tipo não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    delete:
+      summary: Apaga tipo
+      operationId: deleteTypeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Removido
+        '404':
+          description: Tipo não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /type/name/{name}:
+    get:
+      summary: Obtém tipo pelo nome
+      operationId: findTypeByName
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tipo
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Tipo não encontrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Erro interno
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /type/listen:
+    get:
+      summary: SSE - listener das alterações na lista global de tipos
+      operationId: listenTypes
+      responses:
+        '200':
+          description: Stream SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /stats:
+    get:
+      summary: Estatísticas gerais (overview)
+      operationId: getOverviewStats
+      responses:
+        '200':
+          description: Overview
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /stats/report/type:
+    get:
+      summary: Estatísticas de relatórios por tipo
+      operationId: getStatsReportByType
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /stats/report/status:
+    get:
+      summary: Estatísticas de relatórios por estado
+      operationId: getStatsReportByStatus
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /stats/occurrence/importance:
+    get:
+      summary: Estatísticas de ocorrências por importância
+      operationId: getStatsOccurrenceByImportance
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /stats/report/type/month:
+    get:
+      summary: Estatísticas de relatórios por tipo (mês atual)
+      operationId: getStatsReportByTypeThisMonth
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /stats/report/status/month:
+    get:
+      summary: Estatísticas de relatórios por estado (mês atual)
+      operationId: getStatsReportByStatusThisMonth
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /stats/occurrence/importance/month:
+    get:
+      summary: Estatísticas de ocorrências por importância (mês atual)
+      operationId: getStatsOccurrenceByImportanceThisMonth
+      responses:
+        '200':
+          description: Lista
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+
+    UserInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        -name
+        -email
+        -password
+
+    UserCreateTokenInput:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        -email
+        -password
+
+    UserCreateTokenOutput:
+      type: object
+      properties:
+        token:
+          type: string
+
+    UserHomeOutput:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: object
+
+    RoleInput:
+      type: object
+      properties:
+        roleId:
+          type: integer
+        userId:
+          type: integer
+      required:
+        -roleId
+        -userId
+
+    RolesInput:
+      type: object
+      properties:
+        rolesIds:
+          type: array
+          items:
+            type: integer
+        userId:
+          type: integer
+      required:
+        -rolesIds
+        -userId
+
+    ReportTypePercentage:
+      type: object
+      properties:
+        type:
+          type: integer
+        count:
+          type: integer
+        percentage:
+          type: number
+          format: double
+
+    CreateReportInput:
+      type: object
+      properties:
+        creatorId:
+          type: integer
+        occurrenceId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        addons:
+          type: object
+        language:
+          type: string
+      required:
+        -creatorId
+        -occurrenceId
+        -title
+        -description
+        -language
+
+    StatusInput:
+      type: object
+      properties:
+        newStatus:
+          type: string
+      required:
+        -newStatus
+
+    EditorInput:
+      type: object
+      properties:
+        editorId:
+          type: integer
+      required:
+        -editorId
+
+    OccurrenceCreateInput:
+      type: object
+      properties:
+        usersId:
+          type: integer
+        endDate:
+          type: string
+          format: date
+        importance:
+          type: string
+        occurrenceType:
+          type: integer
+        occurrenceInfo:
+          type: object
+      required:
+        -usersId
+        -endDate
+        -importance
+        -occurrenceType
+
+    IntervenorIdInput:
+      type: object
+      properties:
+        intervenorId:
+          type: integer
+      required:
+        -intervenorId
+
+    IntervenorInput:
+      type: object
+      properties:
+        idNumber:
+          type: string
+        idType:
+          type: string
+        name:
+          type: string
+        contactInfo:
+          type: string
+        address:
+          type: string
+      required:
+        -idNumber
+        -idType
+        -name
+
+    IntervenorUpdateInput:
+      type: object
+      properties:
+        idNumber:
+          type: string
+        idType:
+          type: string
+        name:
+          type: string
+        contactInfo:
+          type: string
+        address:
+          type: string
+
+    CreateEvidenceMultipart:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        data:
+          $ref: '#/components/schemas/CreateEvidenceInput'
+      required:
+        -file
+        -data
+
+    CreateEvidenceInput:
+      type: object
+      properties:
+        type:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+        reporterId:
+          type: integer
+        occurrenceId:
+          type: integer
+      required:
+        -type
+        -reporterId
+        -occurrenceId
+
+    UploadDocumentMultipart:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        data:
+          $ref: '#/components/schemas/DocumentInputModel'
+      required:
+        -file
+        -data
+
+    DocumentInputModel:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+      required:
+        -name
+        -type
+
+    TypeCreateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        form:
+          type: object
+      required:
+        -name
+
+    TypeUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+        form:
+          type: object

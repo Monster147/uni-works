@@ -1,0 +1,392 @@
+package pt.ira
+
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
+import pt.ira.model.Problem
+import pt.ira.model.report.CreateReportInput
+import pt.ira.model.report.EditorInput
+import pt.ira.model.report.StatusInput
+import pt.ira.publishers.Publishers
+import pt.ira.report.Report
+import pt.ira.report.ReportStatus
+import pt.ira.user.AuthenticatedUser
+import java.nio.file.Paths
+
+/**
+ * Controlador REST responsável pela gestão de relatórios no sistema.
+ *
+ * Expõe endpoints HTTP para criação, consulta, atualização e eliminação de relatórios,
+ * bem como operações de gestão de estado e de colaboradores (editores), além de suporte
+ * a notificações em tempo real através de Server-Sent Events (SSE).
+ *
+ * Este controlador atua como camada de adaptação entre o protocolo HTTP e a lógica de domínio,
+ * delegando toda a execução ao [ReportService] e traduzindo os resultados para respostas HTTP
+ * com mapeamento explícito de erros de domínio.
+ *
+ * Responsabilidades principais:
+ * - criação e eliminação de relatórios;
+ * - consulta por identificador, estado e criador;
+ * - atualização do estado de um relatório;
+ * - gestão de editores associados a um relatório;
+ * - exposição de stream SSE para atualizações em tempo real de um relatório;
+ * - conversão de erros de domínio em respostas HTTP consistentes.
+ *
+ * @param reportService serviço responsável pela lógica de negócio dos relatórios.
+ * @param publisher conjunto de publicadores responsáveis por eventos e notificações SSE.
+ */
+@RestController
+@RequestMapping("/api/report")
+class ReportController(
+    private val reportService: ReportService,
+    private val publisher: Publishers,
+) {
+    /**
+     * Cria um relatório no sistema.
+     *
+     * Em caso de sucesso, devolve `201 Created` com o header `Location`
+     * a apontar para o recurso criado.
+     *
+     * @param reportInput dados necessários para criação do relatório.
+     *
+     * @return resposta HTTP com o resultado da operação.
+     */
+    @PostMapping
+    fun createReport(
+        @RequestBody reportInput: CreateReportInput,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result =
+            reportService.createReport(
+                creatorId = reportInput.creatorId,
+                occurrenceId = reportInput.occurrenceId,
+                title = reportInput.title,
+                description = reportInput.description,
+                addons = reportInput.addons,
+                language = reportInput.language,
+            )
+        return when (result) {
+            is Success ->
+                ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .header("Location", "/api/report/${result.value.id}")
+                    .build<Unit>()
+
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Obtém um relatório pelo seu identificador.
+     *
+     * @param id identificador do relatório.
+     *
+     * @return `200 OK` com o relatório ou `404 Not Found` caso não exista.
+     */
+    @GetMapping("/{id}")
+    fun findReportById(
+        @PathVariable id: Int,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.findById(id)
+        return when (result) {
+            is Success -> ResponseEntity.status(HttpStatus.OK).body(result.value)
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     *  Atualiza o status do relatório para "SUBMITTED", indicando que foi submetido para revisão.
+     *
+     *  @param id Identificador do relatório a submeter.
+     *
+     *  @return `200 OK`, `404 Not Found` caso não exista ou `409 Conflict` se o relatório já estiver submetido ou aprovado.
+     */
+    @PostMapping("/submit/{id}")
+    fun submitReport(
+        @PathVariable id: Int,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.submitReport(id)
+        return when (result) {
+            is Success -> ResponseEntity.status(HttpStatus.OK).body(result.value)
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Obtém um relatório pelo identificador da ocorrência.
+     *
+     * @param occurrenceId Identificador da ocorrência.
+     *
+     * @return `200 OK` com o relatório ou `404 Not Found` caso não exista.
+     */
+    @GetMapping("byOccurrence/{occurrenceId}")
+    fun findReportByOccurrenceId(
+        @PathVariable occurrenceId: Int,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.findByOccurrenceId(occurrenceId)
+        return when (result) {
+            is Success -> ResponseEntity.status(HttpStatus.OK).body(result.value)
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Obtém todos os relatórios registados no sistema.
+     *
+     * @return `200 OK` com a lista completa de relatórios.
+     */
+    @GetMapping
+    fun findAllReports(user: AuthenticatedUser): ResponseEntity<*> {
+        val reports = reportService.findAll()
+        return ResponseEntity.status(HttpStatus.OK).body(reports)
+    }
+
+    /**
+     * Obtém relatórios filtrados por estado.
+     *
+     * @param status estado do relatório.
+     *
+     * @return lista de relatórios correspondentes ao estado indicado.
+     */
+    @GetMapping("/byStatus/{status}")
+    fun findByStatus(
+        @PathVariable status: String,
+        user: AuthenticatedUser,
+    ): ResponseEntity<List<Report>> = ResponseEntity.ok(reportService.findByStatus(ReportStatus.valueOf(status)))
+
+    /**
+     * Obtém relatórios criados por um utilizador específico.
+     *
+     * @param creatorId identificador do utilizador criador.
+     *
+     * @return lista de relatórios associados ao utilizador.
+     */
+    @GetMapping("/byCreator/{creatorId}")
+    fun findByCreator(
+        @PathVariable creatorId: Int,
+        user: AuthenticatedUser,
+    ): ResponseEntity<List<Report>> = ResponseEntity.ok(reportService.findByCreatorId(creatorId))
+
+    /**
+     * Elimina um relatório pelo seu identificador.
+     *
+     * Em caso de sucesso, devolve `204 No Content`.
+     *
+     * @param id identificador do relatório.
+     *
+     * @return resposta HTTP correspondente ao resultado da operação.
+     */
+    @DeleteMapping("/{id}")
+    fun deleteReportById(
+        @PathVariable id: Int,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.deleteById(id)
+        return when (result) {
+            is Success -> ResponseEntity.status(HttpStatus.NO_CONTENT).build<Unit>()
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Atualiza o estado de um relatório.
+     *
+     * @param id identificador do relatório.
+     * @param newStatus novo estado a atribuir ao relatório.
+     *
+     * @return relatório atualizado ou erro de domínio mapeado.
+     */
+    @PutMapping("/update-status/{id}")
+    fun updateReportStatus(
+        @PathVariable id: Int,
+        @RequestBody newStatus: StatusInput,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.updateStatus(id, ReportStatus.valueOf(newStatus.newStatus))
+        return when (result) {
+            is Success -> ResponseEntity.status(HttpStatus.OK).body(result.value)
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Adiciona um editor a um relatório.
+     *
+     * @param id identificador do relatório.
+     * @param editor identificador do editor a adicionar.
+     *
+     * @return relatório atualizado ou erro de domínio mapeado.
+     */
+    @PostMapping("/{id}/editors")
+    fun addEditor(
+        @PathVariable id: Int,
+        @RequestBody editor: EditorInput,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.addEditor(id, editor.editorId)
+        return when (result) {
+            is Success -> ResponseEntity.status(HttpStatus.OK).body(result.value)
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Remove um editor de um relatório.
+     *
+     * @param id identificador do relatório.
+     * @param editor identificador do editor a remover.
+     *
+     * @return relatório atualizado ou erro de domínio mapeado.
+     */
+    @DeleteMapping("/{id}/editors/")
+    fun removeEditor(
+        @PathVariable id: Int,
+        @RequestBody editor: EditorInput,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.removeEditor(id, editor.editorId)
+        return when (result) {
+            is Success -> ResponseEntity.ok(result.value)
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Atualiza um relatório existente com novo PDF.
+     *
+     * Endpoint: PUT /update/{id}
+     *
+     * @param id Identificador do relatório a atualizar.
+     *
+     * @return `200 OK` com o relatório atualizado, ou erro apropriado.
+     */
+    @PutMapping("/update/{id}")
+    fun updateReport(
+        @PathVariable id: Int,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.updateReport(id)
+        return when (result) {
+            is Success -> ResponseEntity.status(HttpStatus.OK).body(result.value)
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(ReportController::class.java)
+    }
+
+    /**
+     * Permite o *download* do ficheiro PDF associado a um relatório.
+     *
+     * Define o header `Content-Disposition` para forçar *download*
+     * com o nome original do ficheiro.
+     *
+     * @param id identificador da evidência.
+     *
+     * @return recurso binário do ficheiro ou erro apropriado.
+     */
+    @GetMapping("/{id}/download")
+    fun downloadReport(
+        @PathVariable id: Int,
+        user: AuthenticatedUser,
+    ): ResponseEntity<*> {
+        val result = reportService.downloadReport(id)
+        logger.info("Report result: {}", result)
+        return when (result) {
+            is Success -> {
+                val (report, resource) = result.value
+                logger.info("Report {} donwloaded: {}", report, resource)
+
+                val filename = report.filePath.substringAfterLast("/")
+                logger.info("Report filename: {}", filename)
+                val path = Paths.get(report.filePath)
+                logger.info("Report path: {}", path)
+                val contentType = resolveContentType(path)
+                logger.info("Report content type: {}", contentType)
+
+                ResponseEntity.ok()
+                    .header(
+                        "Content-Disposition",
+                        "attachment; filename=\"$filename\"",
+                    )
+                    .contentType(contentType)
+                    .body(resource)
+            }
+
+            is Failure -> result.value.toResponse()
+        }
+    }
+
+    /**
+     * Fornece um endpoint SSE para subscrição de atualizações de um relatório específico.
+     *
+     * Permite receber eventos em tempo real associados a alterações nesse relatório.
+     *
+     * Endpoint: GET /{reportId}/listen
+     *
+     * @param reportId identificador do relatório a observar.
+     *
+     * @return [SseEmitter] com ligação persistente para eventos.
+     */
+    @GetMapping("/{reportId}/listen")
+    fun listen(
+        @PathVariable reportId: Int,
+    ): SseEmitter {
+        val sseEmitter = SseEmitter(Long.MAX_VALUE)
+        publisher.reportPublisher.addEmitter(
+            reportId,
+            SSEUpdatedDataAdapter(
+                sseEmitter,
+            ),
+        )
+        return sseEmitter
+    }
+
+    /**
+     * Converte um erro de domínio [ReportError] na resposta HTTP correspondente.
+     *
+     * Mapeamento de erros:
+     * - [ReportError.ReportNotFound] → 404 Not Found
+     * - [ReportError.UserNotFound] → 404 Not Found
+     * - [ReportError.OccurrenceAlreadyHasReport] → 409 Conflict
+     * - [ReportError.ReportAlreadySubmittedOrApproved] → 409 Conflict
+     * - [ReportError.UploadFailed] → 500 Internal Server Error
+     * - [ReportError.FileNotFound] → 404 Not Found
+     * - [ReportError.TypeNotFound] → 404 Not Found
+     * - [ReportError.MissingRequiredFields] → 400 Bad Request
+     * - [ReportError.IntervenorNotFound] → 404 Not Found
+     * - [ReportError.OccurrenceNotFound] → 404 Not Found
+     * - [ReportError.OccurrenceNotAssignedToUser] → 403 Forbidden
+     *
+     * @receiver Erro de domínio a converter.
+     * @return [ResponseEntity] com o [Problem] e o código HTTP adequados.
+     */
+    private fun ReportError.toResponse(): ResponseEntity<*> =
+        when (this) {
+            is ReportError.ReportNotFound -> Problem.ReportNotFound.response(HttpStatus.NOT_FOUND)
+            is ReportError.UserNotFound -> Problem.UserNotFound.response(HttpStatus.NOT_FOUND)
+            is ReportError.OccurrenceAlreadyHasReport -> Problem.OccurrenceAlreadyHasReport.response(HttpStatus.CONFLICT)
+            is ReportError.ReportAlreadySubmittedOrApproved -> Problem.ReportAlreadySubmittedOrApproved.response(HttpStatus.CONFLICT)
+            is ReportError.UploadFailed -> Problem.UploadFailed.response(HttpStatus.INTERNAL_SERVER_ERROR)
+            is ReportError.FileNotFound -> Problem.FileNotFound.response(HttpStatus.NOT_FOUND)
+            is ReportError.TypeNotFound -> Problem.TypeNotFound.response(HttpStatus.NOT_FOUND)
+            is ReportError.MissingRequiredFields -> Problem.MissingRequiredFields.response(HttpStatus.BAD_REQUEST)
+            is ReportError.IntervenorNotFound -> Problem.IntervenorNotFound.response(HttpStatus.NOT_FOUND)
+            is ReportError.OccurrenceNotFound -> Problem.OccurrenceNotFound.response(HttpStatus.NOT_FOUND)
+            is ReportError.OccurrenceNotAssignedToUser -> Problem.OccurrenceNotAssignedToUser.response(HttpStatus.FORBIDDEN)
+            else -> Problem.InternalError.response(HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+}

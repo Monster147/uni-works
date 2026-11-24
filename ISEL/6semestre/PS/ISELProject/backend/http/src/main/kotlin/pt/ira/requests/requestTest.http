@@ -1,0 +1,125 @@
+@token_user = AlAGP274OwpKl1q0M-owT2Cow1evsoAZqYB3n1RR0xc=
+
+###  Create User
+POST http://localhost:8080/api/user
+Content-Type: application/json
+
+{
+  "name": "dadada",
+  "email": "dadada",
+  "password": "dadada"
+}
+
+### Create Token
+POST http://localhost:8080/api/user/token
+Content-Type: application/json
+
+{
+  "email": "dadada",
+  "password": "dadada"
+}
+
+###Get user info
+GET http://localhost:5123/api/user/me
+Content-Type: application/json
+Authorization: Bearer {{token_user}}
+
+
+###Create occurrence
+POST http://localhost:8080/api/occurrence
+Content-Type: application/json
+Authorization: Bearer {{token_user}}
+
+{
+  "usersId": 2,
+  "endDate": "2030-12-31",
+  "importance": "NORMAL",
+  "occurrenceType": { "type": "fire", "sub": { "a": 1 } },
+  "occurrenceInfo": { "location": "Lisbon", "people": [1,2,3] }
+}
+
+### 6) List all occurrences
+GET http://localhost:8080/api/occurrence
+
+### 7) List occurrences by reporterId
+GET http://localhost:8080/api/occurrence/reporter/2
+
+### 8) Create intervenor
+POST http://localhost:8080/api/intervenor
+Content-Type: application/json
+Authorization: Bearer {{token_user}}
+
+{
+  "idNumber": "1",
+  "idType": "NIF",
+  "name": "Teste",
+  "contactInfo": "1",
+  "address": "Rua Teste, 123"
+}
+
+### 9) Create Evidence
+POST http://localhost:8080/api/evidence
+Authorization: Bearer {{token_user}}
+Content-Type: multipart/form-data; boundary=boundary123
+
+--boundary123
+Content-Disposition: form-data; name="file"; filename="Evidencia1.png"
+Content-Type: image/png
+
+< C:\Users\josec\Downloads\Evidencia1.png
+--boundary123
+Content-Disposition: form-data; name="data"
+Content-Type: application/json
+
+{
+  "type": { "category": "photo", "severity": "high" },
+  "location": "Lisbon",
+  "description": "Fire evidence image",
+  "reporterId": 2,
+  "occurrenceId": 1
+}
+--boundary123--
+
+### Download Evidence
+GET http://localhost:8080/api/evidence/1/download
+Accept: image/png
+
+### Get all intervenors
+GET http://localhost:8080/api/intervenor
+
+### Add intervenor to occurrence
+POST http://localhost:8080/api/occurrence/1/intervenors
+Content-Type: application/json
+
+{
+  "intervenorId": 1
+}
+
+### Create Document
+POST http://localhost:8080/api/documents
+Content-Type: multipart/form-data; boundary=boundary123
+
+--boundary123
+Content-Disposition: form-data; name="file"; filename="03_InformaçãoSocioeconómica.pdf"
+Content-Type: application/pdf
+
+< C:\Users\User\Downloads\Templates\Templates\01_AUTOMÓVEL\02_DOCUMENTOSDESUPORTECAPTAUTO_paraimpressão\03_InformaçãoSocioeconómica.pdf
+--boundary123
+Content-Disposition: form-data; name="data"
+Content-Type: application/json
+
+{
+  "name": "03_InformaçãoSocioeconómica",
+  "type": "Automovel"
+}
+--boundary123--
+
+### Download Document
+GET http://localhost:8080/api/documents/1/download
+Accept: application/pdf
+
+### Get all documents
+GET http://localhost:8080/api/documents
+
+### Get all documents types
+GET http://localhost:8080/api/documents/types
