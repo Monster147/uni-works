@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package= "CN2026LabelsStubs";
+
+package CN2026Labels;
+
+service CN2026LabelsService{
+
+  rpc SubmitImage(stream ImageChunk) returns (ImageResponse);
+
+  rpc FindImageLabelById(ImageLabelRequest) returns (ImageLabelResponse);
+
+  rpc SearchImage(SearchRequest) returns (SearchResponse);
+
+  rpc DownloadImage(ImageLabelRequest) returns (stream ImageChunk);
+
+  rpc ScaleGrpcServers(ScaleRequest) returns (ScaleResponse);
+
+  rpc ScaleWorkers(ScaleRequest) returns (ScaleResponse);
+}
+
+message ImageResponse{
+  string requestID= 1;
+}
+
+message ImageChunk{
+  bytes data = 1;
+  string filename =2;
+}
+
+message ImageLabelRequest{
+  string requestID= 1;
+}
+
+message Label{
+  string originalLanguage=1;
+  string translated=2;
+  double score =3;
+}
+
+message ImageLabelResponse{
+  string requestID= 1;
+  string filename =2;
+  string processedAt= 3;
+  repeated Label labels =4;
+}
+
+message SearchRequest{
+  string label= 1;
+  string fromDate=2;
+  string toDate=3;
+}
+
+message SearchResponse{
+  repeated string filenames=1;
+}
+
+message ScaleRequest{
+  int32 wantedInstances=1;
+}
+
+message ScaleResponse{
+  string message=1;
+}
